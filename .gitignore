@@ -1,0 +1,5 @@
+node_modules/
+.verify/
+.verify-screenshots/
+screenshots/
+audit-screenshots/

@@ -1,0 +1,2502 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joey Lee · Physical AI Lab Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e17;
+      --bg-card: rgba(12, 20, 36, 0.82);
+      --cyan: #00e5ff;
+      --magenta: #ff2d95;
+      --text: #eef3ff;
+      --muted: #9aadc8;
+      --border-glow: linear-gradient(135deg, var(--cyan), var(--magenta), var(--cyan));
+      --font: "Noto Sans KR", system-ui, sans-serif;
+      --mono: "JetBrains Mono", monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    /* 배경 그리드 + 스캔라인 */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.12) 2px,
+        rgba(0, 0, 0, 0.12) 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.35;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 3.25rem 2rem 2.75rem;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(40px) scale(0.98);
+      transition: opacity 0.55s ease, transform 0.55s ease, visibility 0.55s;
+      overflow: hidden;
+    }
+
+    .slide-fit {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      flex: 1;
+      transform-origin: top center;
+    }
+    /* 측정 시 flex 클리핑을 끄고 실제 콘텐츠 높이를 잡음 */
+    .slide-fit--measure .slide-col,
+    .slide-fit--measure .slide-body,
+    .slide-fit--measure .grid-2,
+    .slide-fit--measure .glass {
+      overflow: visible !important;
+      min-height: auto !important;
+    }
+    .slide-fit--measure {
+      height: auto !important;
+      max-height: none !important;
+    }
+    .slide-header {
+      flex-shrink: 0;
+      margin-bottom: 0.65rem;
+    }
+    .slide-body {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+    .slide-col {
+      min-height: 0;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    /* 미디어 열 — 라벨·썸네일 사이 flex 성장으로 생기는 빈 공간 방지 */
+    .slide-col--media {
+      justify-content: flex-start;
+      align-items: stretch;
+    }
+    .slide-col .glass {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: clamp(0.75rem, 1.5vw, 1.25rem);
+    }
+    .slide-col .glass .deck-media,
+    .slide-col .glass img:not(.yt-thumb--hero) {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .slide-col--media .glass--media {
+      flex: 0 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      justify-content: flex-start;
+      padding: clamp(0.65rem, 1.2vw, 1rem);
+    }
+    .slide-col--media .media-wrap {
+      flex: 0 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .slide-col--media .yt-label {
+      margin-bottom: 0.35rem;
+    }
+    .card-compact {
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: rgba(12, 20, 36, 0.55);
+      border: 1px solid rgba(0, 229, 255, 0.12);
+    }
+    .card-compact.why-block,
+    .card-compact.my-work-block,
+    .card-compact.project-brief {
+      margin-top: 0;
+    }
+    /* reflection 래퍼는 card-compact 박스 제외 — 본문은 불릿+마커만 */
+    .card-compact.hardest-block {
+      margin-top: 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+    }
+    .card-compact.project-brief {
+      padding: 0.55rem 0.85rem;
+    }
+    .card-compact.project-brief .project-brief__label {
+      margin-bottom: 0.35rem;
+    }
+    @media (max-width: 900px) {
+      .slide-body { grid-template-columns: 1fr; }
+      .strengths-grid { grid-template-columns: 1fr !important; }
+      .my-work-block ul { grid-template-columns: 1fr !important; }
+    }
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0) scale(1);
+    }
+    /* 전환 전 fit 측정 — 보이지 않게 하되 활성 슬라이드와 동일 레이아웃 */
+    .slide.slide--prefit {
+      visibility: visible !important;
+      opacity: 0 !important;
+      pointer-events: none;
+      transform: translateX(0) scale(1) !important;
+      transition: none !important;
+      z-index: 0;
+    }
+
+    .glass {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 16px;
+      padding: clamp(1rem, 2.5vw, 2rem);
+      position: relative;
+      border: 1px solid rgba(0, 229, 255, 0.15);
+    }
+    .glass::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: 18px;
+      background: var(--border-glow);
+      background-size: 200% 200%;
+      animation: borderShift 4s ease infinite;
+      z-index: -1;
+      opacity: 0.55;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: xor;
+      padding: 2px;
+    }
+    @keyframes borderShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 0.75rem;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 0.5rem;
+      /* 한국어 헤드라인 — 단어 중간 줄바꿈 방지 */
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      text-wrap: balance;
+    }
+    h2 {
+      font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+      margin-bottom: 0.35rem;
+      line-height: 1.28;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 1px 14px rgba(0, 229, 255, 0.12));
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      text-wrap: balance;
+    }
+    h3 {
+      font-size: 1rem;
+      color: var(--magenta);
+      margin: 1rem 0 0.5rem;
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    p, li {
+      line-height: 1.68;
+      color: var(--text);
+      font-size: clamp(0.9rem, 1.8vw, 1.05rem);
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .muted { color: var(--muted); }
+    /* 언어 토글 — 한 슬라이드에 KO/EN 중 하나만 표시 */
+    .lang-ko [data-lang="en"] { display: none !important; }
+    .lang-en [data-lang="ko"] { display: none !important; }
+
+    .lang-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1.5rem;
+      z-index: 101;
+    }
+    .lang-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-height: 2.5rem;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: var(--text);
+      padding: 0.55rem 1.15rem 0.55rem 0.9rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    }
+    .lang-btn__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.55);
+    }
+    .lang-btn:hover {
+      border-color: rgba(0, 229, 255, 0.45);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    /* 프로젝트 한 줄 소개 — why-block 위에 배치 */
+    .project-brief {
+      margin-top: 1rem;
+      padding: 1rem 1.25rem;
+      background: rgba(0, 229, 255, 0.05);
+      border: 1px solid rgba(0, 229, 255, 0.18);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .project-brief__label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 0.6rem;
+    }
+    .project-brief p {
+      margin: 0;
+      font-size: clamp(0.92rem, 1.75vw, 1.02rem);
+    }
+    .why-block {
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem;
+      border-left: 3px solid var(--magenta);
+      background: rgba(255, 45, 149, 0.06);
+      border-radius: 0 12px 12px 0;
+    }
+    .why-block > strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: #ff9fd4;
+      font-family: var(--font);
+      font-size: clamp(0.86rem, 1.6vw, 0.96rem);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: none;
+    }
+    .why-block p {
+      line-height: 1.72;
+      font-size: clamp(0.9rem, 1.7vw, 1rem);
+    }
+
+    .my-work-block {
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem 1rem 1.35rem;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--cyan) 10%, rgba(8, 12, 18, 0.62));
+      border: 1px solid rgba(0, 229, 255, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    /* 제가 맡은 일 — 라벨 한 줄, 본문은 불릿 목록 */
+    .my-work-block > strong {
+      display: block;
+      margin: 0 0 0.4rem;
+      color: #7ee8ff;
+      font-family: var(--font);
+      font-size: clamp(0.86rem, 1.6vw, 0.96rem);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: none;
+    }
+    .my-work-block ul.bullets,
+    .my-work-block ul.my-work-block__list {
+      margin-top: 0.15rem;
+      display: block;
+    }
+    .my-work-block ul.bullets li,
+    .my-work-block ul.my-work-block__list li {
+      font-weight: 600;
+      font-size: clamp(0.86rem, 1.6vw, 0.96rem);
+      line-height: 1.62;
+      padding: 0.22rem 0 0.22rem 1.5rem;
+    }
+    /* 반성 섹션 — 라벨 한 줄, 본문은 다음 줄에 불릿 */
+    .problem-solution {
+      margin-top: 0.45rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .problem-solution__block {
+      display: block;
+      padding: 0;
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      font-size: clamp(0.82rem, 1.55vw, 0.92rem);
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.92);
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .problem-solution__label {
+      display: block;
+      font-family: var(--font);
+      font-size: inherit;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: none;
+      padding: 0;
+      margin: 0 0 0.18rem;
+      border: none;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      white-space: normal;
+    }
+    .problem-solution__block--problem .problem-solution__label {
+      color: #ff9fd4;
+    }
+    .problem-solution__block--solution .problem-solution__label {
+      color: #7ee8ff;
+    }
+    .problem-solution__block--learned .problem-solution__label {
+      color: #d4c4ff;
+    }
+    /* 반성 본문 강조 — 다크 배경에서도 읽히는 밝은 형광펜 (볼드 없음) */
+    .problem-solution__block strong,
+    .problem-solution__block .deck-term {
+      display: inline;
+      font-weight: inherit;
+      color: #12101a;
+      background: #fff59d;
+      padding: 0.06em 0.28em;
+      border-radius: 2px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .problem-solution__block--solution strong,
+    .problem-solution__block--solution .deck-term {
+      background: #c8f7dc;
+    }
+    .problem-solution__block--learned strong,
+    .problem-solution__block--learned .deck-term {
+      background: #e8d9ff;
+    }
+    /* 본문은 라벨 아래 불릿 한 줄 — strong·deck-term은 인라인 유지 */
+    .problem-solution__body {
+      display: block;
+      position: relative;
+      margin: 0;
+      padding: 0.12rem 0 0.12rem 1.35rem;
+    }
+    .problem-solution__body::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      top: 0.12rem;
+      color: var(--cyan);
+      line-height: 1.55;
+    }
+    .problem-solution__block--problem .problem-solution__body::before {
+      color: #ff9fd4;
+    }
+    .problem-solution__block--solution .problem-solution__body::before {
+      color: #7ee8ff;
+    }
+    .problem-solution__block--learned .problem-solution__body::before {
+      color: #d4c4ff;
+    }
+
+    /* 프리로드 — 에셋 준비 전 덱 UI 숨김 */
+    body:not(.deck-ready) .deck,
+    body:not(.deck-ready) .lang-toggle,
+    body:not(.deck-ready) .progress-wrap,
+    body:not(.deck-ready) .counter,
+    body:not(.deck-ready) .nav-hint {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .deck-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.1rem;
+      background: var(--bg);
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+
+    body.deck-ready .deck-loader {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .deck-loader__bar-wrap {
+      width: min(360px, 72vw);
+      height: 5px;
+      background: rgba(0, 229, 255, 0.12);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .deck-loader__bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta));
+      transition: width 0.25s ease;
+    }
+
+    .deck-loader__text {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .deck-loader__count {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    ul.strengths, ul.bullets {
+      list-style: none;
+      margin-top: 1rem;
+    }
+    ul.strengths li, ul.bullets li {
+      padding: 0.2rem 0 0.2rem 1.5rem;
+      position: relative;
+    }
+    ul.strengths.strengths-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 1.25rem;
+      margin-top: 0.65rem;
+    }
+    ul.strengths li::before, ul.bullets li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--cyan);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(1rem, 2vw, 2rem);
+      align-items: stretch;
+      margin-top: 0;
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+    }
+    .slide-fit > .grid-2 { flex: 1; min-height: 0; }
+    .grid-2 > .glass { height: 100%; min-height: 0; overflow: hidden; }
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .slide img,
+    .deck-media {
+      width: 100%;
+      max-height: 40vh;
+      object-fit: contain;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(0, 229, 255, 0.12);
+    }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .metric {
+      flex: 1 1 140px;
+      text-align: center;
+      padding: 1rem;
+      background: rgba(0, 229, 255, 0.06);
+      border-radius: 12px;
+      border: 1px solid rgba(0, 229, 255, 0.2);
+    }
+    .metric .val {
+      font-family: var(--mono);
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 700;
+      color: var(--cyan);
+    }
+    .metric .lbl {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 1rem 0;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+    }
+    .flow span {
+      padding: 0.35rem 0.75rem;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 6px;
+    }
+    .flow .arrow { color: var(--magenta); }
+
+    /* stagger reveal */
+    .reveal > * {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .slide.active .reveal > * {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .slide.active .reveal > *:nth-child(1) { transition-delay: 0.05s; }
+    .slide.active .reveal > *:nth-child(2) { transition-delay: 0.12s; }
+    .slide.active .reveal > *:nth-child(3) { transition-delay: 0.19s; }
+    .slide.active .reveal > *:nth-child(4) { transition-delay: 0.26s; }
+    .slide.active .reveal > *:nth-child(5) { transition-delay: 0.33s; }
+    .slide.active .reveal > *:nth-child(6) { transition-delay: 0.4s; }
+    .slide.active .reveal > *:nth-child(7) { transition-delay: 0.47s; }
+
+    /* progress + counter */
+    .progress-wrap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      z-index: 100;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta));
+      transition: width 0.4s ease;
+      box-shadow: 0 0 12px var(--cyan);
+    }
+    .counter {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--muted);
+      z-index: 100;
+    }
+    .nav-hint {
+      position: fixed;
+      bottom: 1.25rem;
+      left: 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: rgba(139, 156, 184, 0.6);
+      z-index: 100;
+    }
+
+    /* CTA slide */
+    .cta-zone {
+      text-align: center;
+      padding: clamp(2rem, 5vw, 4rem);
+    }
+    .cta-zone h1 { font-size: clamp(2.5rem, 7vw, 4.5rem); }
+    .cta-btn {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 1.1rem 2.5rem;
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-family: var(--mono);
+      text-decoration: none;
+      color: var(--bg);
+      background: linear-gradient(135deg, var(--cyan), var(--magenta));
+      border-radius: 12px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 24px rgba(0, 229, 255, 0.35);
+    }
+    .cta-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 40px rgba(255, 45, 149, 0.5), 0 0 60px rgba(0, 229, 255, 0.3);
+    }
+    .controls-box {
+      margin-top: 2rem;
+      display: inline-block;
+      text-align: left;
+      padding: 1rem 1.5rem;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 10px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+    }
+    .controls-box kbd {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      background: rgba(0, 229, 255, 0.15);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 4px;
+      margin: 0 0.15rem;
+    }
+
+    .name-badge {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .name-badge .role-tag {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--cyan);
+      border-radius: 4px;
+      color: var(--cyan);
+    }
+
+    /* 프로젝트 제목 옆 기간·일수 */
+    .slide-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .slide-title-row h2 { margin-bottom: 0; }
+    .slide-title-meta {
+      font-family: var(--mono);
+      font-size: clamp(0.72rem, 1.4vw, 0.85rem);
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    /* 밀도 높은 슬라이드 — 글자 약간 축소 */
+    .slide-dense p,
+    .slide-dense li { font-size: clamp(0.86rem, 1.65vw, 0.98rem); line-height: 1.68; }
+    .slide-dense h3 { font-size: 0.9rem; margin-top: 0.75rem; }
+
+    .slide-grid-2 {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: clamp(0.75rem, 1.5vw, 1.25rem);
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .slide-grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* 반성 섹션 래퍼 — 섹션 제목 + 한 줄 문장 */
+    .hardest-block {
+      margin-top: 1rem;
+      padding: 0;
+      border: none;
+      background: transparent;
+      border-radius: 0;
+    }
+    /* 섹션 제목만 블록 — 본문 problem-solution 안의 strong은 인라인 유지 */
+    .hardest-block > strong {
+      display: block;
+      margin: 0 0 0.35rem;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      font-family: var(--font);
+      font-size: clamp(0.8rem, 1.5vw, 0.88rem);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      color: #ff9fd4;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .hardest-block--learned > strong {
+      color: #d4c4ff;
+    }
+    .hardest-block ul.bullets { margin-top: 0.35rem; }
+    .hardest-block li { padding: 0.2rem 0 0.2rem 1.35rem; }
+
+    /* YouTube 썸네일 링크 */
+    .yt-block { margin-top: 1rem; }
+    .yt-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 0.5rem;
+    }
+    a.yt-link { display: inline-block; line-height: 0; }
+    .yt-thumb {
+      max-width: 320px;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 2px solid rgba(0, 229, 255, 0.35);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.2), 0 8px 28px rgba(0, 0, 0, 0.45);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    a.yt-link:hover .yt-thumb {
+      transform: scale(1.02);
+      border-color: rgba(255, 45, 149, 0.5);
+      box-shadow: 0 0 28px rgba(255, 45, 149, 0.25), 0 0 40px rgba(0, 229, 255, 0.2);
+    }
+    a.yt-link--block { display: block; width: 100%; line-height: 0; }
+    .yt-thumb--hero {
+      max-width: none;
+      width: 100%;
+      max-height: min(52vh, 100%);
+      object-fit: cover;
+      aspect-ratio: 16/9;
+      border-radius: 10px;
+      border: 2px solid rgba(0, 229, 255, 0.35);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.2), 0 8px 28px rgba(0, 0, 0, 0.45);
+    }
+    .deck-media--hero {
+      max-height: min(52vh, 100%);
+      width: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    /* IoT 슬라이드 7 — 헤더 영상 높이 제한해 why·my-work가 한 화면에 들어가게 */
+    .slide[data-slide="6"] .slide-header-intro__media .deck-media--hero {
+      max-height: min(20vh, 168px);
+      object-fit: contain;
+      background: rgba(0, 0, 0, 0.35);
+    }
+    .slide[data-slide="6"] .why-block,
+    .slide[data-slide="6"] .my-work-block {
+      margin-top: 0.55rem;
+      padding: 0.7rem 0.95rem;
+    }
+    .slide[data-slide="6"] .my-work-block ul.bullets li {
+      line-height: 1.55;
+      font-size: clamp(0.82rem, 1.45vw, 0.92rem);
+    }
+    .slide-col--media .metrics {
+      margin-top: 0;
+      flex-shrink: 0;
+      gap: 0.5rem;
+    }
+    .slide-col--media .metrics .metric {
+      padding: 0.5rem 0.35rem;
+    }
+    .slide-col--media .metrics .val {
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    }
+    .slide-col--media .flow {
+      margin: 0;
+      flex-shrink: 0;
+      font-size: 0.72rem;
+    }
+    .slide-col--media .flow span {
+      padding: 0.25rem 0.5rem;
+    }
+    /* 타이틀 슬라이드 — slide-fit이 세로를 채운 뒤 내부에서 중앙 (하단만 비는 착시 제거) */
+    .slide.slide--title {
+      justify-content: stretch;
+    }
+    .slide.slide--title .slide-fit {
+      flex: 1;
+      max-height: 100%;
+      justify-content: center;
+    }
+    .slide.slide--title .slide-fit > .glass.reveal {
+      flex: 0 1 auto;
+      min-height: 0;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    /* dense(비-sparse) — 헤더+본문이 뷰포트 세로를 채우고 측정·표시 레이아웃을 맞춤 */
+    .slide.slide-dense:not(.slide--sparse) {
+      justify-content: stretch;
+    }
+    .slide.slide-dense:not(.slide--sparse) .slide-col:first-child .slide-footer-muted {
+      margin-top: auto;
+    }
+    .slide.slide-dense:not(.slide--sparse) .slide-header-intro__media .yt-thumb--hero,
+    .slide.slide-dense:not(.slide--sparse) .slide-header-intro__media .deck-media--hero {
+      max-height: min(26vh, 220px);
+    }
+
+    /* dense 슬라이드 — 단일 glass가 남는 세로 공간을 채움 */
+    .slide:not(.slide--title) .slide-fit > .glass.reveal:only-child {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .slide-fit--cta {
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+    }
+    .slide-fit--cta > .glass {
+      flex: 0 1 auto;
+    }
+    /* CTA glass — only-child stretch 규칙보다 우선, 박스 내부 빈 공간 방지 */
+    .slide:not(.slide--title) .slide-fit.slide-fit--cta > .glass.reveal:only-child {
+      flex: 0 1 auto;
+      min-height: 0;
+      height: auto;
+      overflow: visible;
+      display: block;
+      justify-content: flex-start;
+    }
+    .slide-fit--cta .glass {
+      width: 100%;
+      max-width: 52rem;
+    }
+    /* 프로젝트 소개 상단 — 설명 + 데모 영상(시작에만) */
+    .slide-header-intro {
+      display: grid;
+      grid-template-columns: 1fr min(44%, 400px);
+      gap: 1rem;
+      align-items: center; /* 소개 텍스트를 데모 영상 열과 세로 중앙 정렬 */
+      margin-bottom: 0.45rem;
+    }
+    @media (max-width: 900px) {
+      .slide-header-intro { grid-template-columns: 1fr; }
+    }
+    .slide-header-intro__media {
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* 영상 썸네일도 텍스트 블록 높이에 맞춰 중앙 */
+      min-height: 0;
+    }
+    .slide-header-intro__media .yt-thumb--hero {
+      max-height: min(22vh, 200px);
+    }
+    /* 헤더는 소개만 — 본문 우측에 큰 데모 썸네일 */
+    .slide-header-intro--stacked {
+      grid-template-columns: 1fr;
+    }
+    /* EduPing slide 15 — 라벨 아래 썸네일이 자연스럽게 붙도록 flex 성장·하단 정렬 제거 */
+    .slide-col--media-feature {
+      justify-content: flex-start;
+      padding-top: 0.35rem;
+    }
+    .slide-col--media-feature .glass--demo-thumb {
+      flex: 0 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 0.35rem;
+    }
+    .slide-col--media-feature .media-wrap--yt {
+      flex: 0 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .slide-col--media-feature .yt-thumb--panel {
+      width: 100%;
+      max-width: 100%;
+      max-height: min(56vh, 26rem);
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+    @media (max-width: 900px) {
+      .slide-col--media-feature {
+        padding-top: 0;
+        order: 2;
+      }
+      .slide-col--media-feature .media-wrap--yt {
+        min-height: 0;
+        align-items: center;
+      }
+      .slide-col--media-feature .yt-thumb--panel {
+        max-height: min(42vh, 18rem);
+      }
+    }
+    /* 슬라이드 15 (EduPing hardest) — glass 안쪽 여백은 콘텐츠 높이에 맞춤 */
+    .slide[data-slide="15"] .grid-2 > .glass {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      padding: clamp(0.65rem, 1.2vw, 1rem);
+    }
+    .slide[data-slide="15"] .glass--deck-demo .deck-demo-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      width: 100%;
+    }
+    .slide[data-slide="15"] .glass--deck-demo .yt-label {
+      margin: 0;
+      flex-shrink: 0;
+    }
+    .slide[data-slide="15"] .glass--deck-demo .media-wrap--deck16 {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 0;
+      overflow: hidden;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.35);
+    }
+    .slide[data-slide="15"] .glass--deck-demo .deck-media--hero {
+      flex: 0 0 auto;
+      width: 100%;
+      max-height: min(30vh, 17.5rem);
+      height: auto;
+      aspect-ratio: unset;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+      margin: 0;
+      vertical-align: top;
+    }
+    .slide[data-slide="15"] .glass--deck-demo .flow {
+      margin: 0;
+      flex-shrink: 0;
+      font-size: 0.72rem;
+    }
+    .slide[data-slide="15"] .glass--deck-demo .flow span {
+      padding: 0.25rem 0.5rem;
+    }
+    .slide[data-slide="15"] .glass--deck-demo .metrics {
+      margin-top: 0;
+      flex-shrink: 0;
+      gap: 0.5rem;
+    }
+    .slide[data-slide="15"] .glass--deck-demo .metrics .metric {
+      padding: 0.5rem 0.35rem;
+    }
+    .slide[data-slide="15"] .glass--deck-demo .metrics .val {
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    }
+    /* CTA sparse — slide-fit이 뷰포트를 채우고 카드만 세로 중앙 */
+    .slide.slide--sparse:has(.slide-fit--cta) {
+      justify-content: stretch;
+    }
+    /* sparse 기본 — grid-2·CTA 제외한 단일 카드만 슬라이드 자체 중앙 */
+    .slide.slide--sparse:not(:has(.slide-body.grid-2)):not(:has(.slide-fit--cta)) {
+      justify-content: center;
+    }
+    .slide.slide--sparse .slide-fit {
+      flex: 0 1 auto;
+      max-height: 100%;
+    }
+    .slide.slide--title .slide-fit,
+    .slide.slide--sparse:has(.slide-fit--cta) .slide-fit {
+      flex: 1;
+      max-height: 100%;
+    }
+    /* grid-2 sparse — 박스는 콘텐츠 높이 유지, 슬라이드·열 기준으로만 세로 중앙 */
+    .slide.slide-dense.slide--sparse:has(.slide-body.grid-2) {
+      justify-content: stretch;
+    }
+    .slide.slide-dense.slide--sparse:has(.slide-body.grid-2) .slide-fit {
+      flex: 1;
+      max-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 0;
+    }
+    .slide.slide-dense.slide--sparse:has(.slide-body.grid-2) .slide-body.grid-2 {
+      flex: 0 1 auto;
+      min-height: 0;
+      height: auto;
+      align-items: center;
+    }
+    .slide.slide-dense.slide--sparse:has(.slide-body.grid-2) .grid-2 > .glass {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      height: auto;
+      min-height: 0;
+    }
+    /* 데모 영상 2열 슬라이드 — data-deck-video-slide (슬라이드 번호 하드코딩 없음) */
+    .slide[data-deck-video-slide] .slide-body.grid-2 {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(0.65rem, 1.5vw, 1.25rem);
+      align-items: stretch;
+    }
+    .slide[data-deck-video-slide] .slide-deck-copy,
+    .slide[data-deck-video-slide] .slide-deck-media {
+      padding: clamp(0.65rem, 1.4vw, 1.25rem);
+      min-height: 0;
+      max-width: 100%;
+    }
+    .slide[data-deck-video-slide] .slide-deck-copy {
+      font-size: clamp(0.82rem, 2.1vw, 0.94rem);
+      /* fitActiveSlide가 전체 축소 — 내부 스크롤바(슬라이더처럼 보임) 불필요 */
+      overflow: hidden;
+    }
+    .slide[data-deck-video-slide] .slide-deck-copy h2 {
+      font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+      line-height: 1.2;
+    }
+    .slide[data-deck-video-slide] .slide-deck-copy .hardest-block {
+      margin-top: clamp(0.45rem, 1vw, 0.85rem);
+    }
+    .slide[data-deck-video-slide] .slide-deck-copy .bullets li {
+      padding: 0.15rem 0 0.15rem 1.2rem;
+    }
+    .slide[data-deck-video-slide] .slide-deck-media {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      justify-content: center;
+    }
+    .slide[data-deck-video-slide] .slide-deck-media .deck-media {
+      max-height: min(40vh, 100%);
+      aspect-ratio: 16 / 9;
+    }
+
+  /* CTA — 사이트 버튼과 조작 안내 박스 세로·가로 정렬 */
+    .cta-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.75rem;
+      width: 100%;
+    }
+    .cta-stack .cta-btn {
+      margin-top: 0;
+      width: min(100%, 26rem);
+      text-align: center;
+    }
+    .cta-stack .controls-box {
+      margin-top: 0;
+      width: min(100%, 26rem);
+    }
+    /* 마지막 슬라이드 — 연락처 링크 */
+    .cta-contact {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.55rem 1.1rem;
+      margin-top: 1.75rem;
+      padding-top: 1.35rem;
+      border-top: 1px solid rgba(0, 229, 255, 0.18);
+      max-width: 40rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .cta-contact__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: var(--mono);
+      font-size: clamp(0.78rem, 1.45vw, 0.9rem);
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 229, 255, 0.22);
+      background: rgba(0, 229, 255, 0.06);
+      transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+    }
+    .cta-contact__link:hover {
+      color: var(--cyan);
+      border-color: rgba(0, 229, 255, 0.45);
+      background: rgba(0, 229, 255, 0.12);
+      transform: translateY(-1px);
+    }
+    .cta-contact__link--accent {
+      border-color: rgba(255, 45, 149, 0.28);
+      background: rgba(255, 45, 149, 0.06);
+    }
+    .cta-contact__link--accent:hover {
+      color: #ff9fd4;
+      border-color: rgba(255, 45, 149, 0.5);
+      background: rgba(255, 45, 149, 0.12);
+    }
+    @media (max-width: 560px) {
+      .cta-contact {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cta-contact__link {
+        justify-content: center;
+      }
+    }
+    .esc-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.65rem;
+      padding: 0.55rem 0.85rem;
+      border: 2px solid rgba(255, 45, 149, 0.5);
+      border-radius: 8px;
+      background: rgba(255, 45, 149, 0.12);
+      font-weight: 600;
+      color: var(--text);
+    }
+    .esc-hint kbd {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      background: rgba(255, 45, 149, 0.25);
+      border: 1px solid rgba(255, 45, 149, 0.55);
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+    }
+    .slide-footer-muted {
+      flex-shrink: 0;
+      margin-top: 0.35rem;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-loader" id="deck-loader" aria-live="polite" aria-busy="true">
+    <p class="deck-loader__text">
+      <span data-lang="ko">프레젠테이션 준비 중…</span>
+      <span data-lang="en">Loading presentation…</span>
+    </p>
+    <div class="deck-loader__bar-wrap" aria-hidden="true">
+      <div class="deck-loader__bar" id="deck-loader-bar"></div>
+    </div>
+    <p class="deck-loader__count" id="deck-loader-count">0 / 0</p>
+  </div>
+
+  <div class="lang-toggle">
+    <button type="button" id="lang-btn" class="lang-btn" aria-label="Switch language">
+      <span class="lang-btn__dot"></span>
+      <span class="lang-btn__label">English</span>
+    </button>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+  <div class="counter" id="counter">1 / 0</div>
+  <div class="nav-hint">
+    <span data-lang="ko">← → Space · 모바일 스와이프</span>
+    <span data-lang="en">← → Space · swipe on mobile</span>
+  </div>
+
+  <div class="deck" id="deck">
+
+    <!-- SLIDE 1: Why Me -->
+    <section class="slide slide--title active" data-slide="1">
+      <div class="slide-fit">
+        <div class="glass reveal">
+          <p class="eyebrow"><span data-lang="ko">채용 목적</span><span data-lang="en">Purpose</span></p>
+          <div class="name-badge">
+            <h1 style="margin:0"><span data-lang="ko">이정우</span><span data-lang="en">Joey Lee</span></h1>
+            <span class="role-tag"><span data-lang="ko">Physical AI · 로봇 · 비전-UI</span><span data-lang="en">Physical AI · Robotics · Vision-UI</span></span>
+          </div>
+          <p data-lang="ko" style="margin-top:0.5rem"><strong>데모가 끊기지 않게</strong> 비전·UI·로봇을 한 줄로 이어 붙이는 엔지니어입니다. <strong>시뮬·벤치에서 숫자·영상으로 먼저 증명</strong>하고, 안 되면 숨기지 않습니다.</p>
+          <p data-lang="en" style="margin-top:0.5rem">I wire <strong>vision → UI → robot</strong> so demos don’t die on stage — <strong>sim/bench proof first</strong>, honest lab log when it breaks.</p>
+          <h3><span data-lang="ko">저에게 기대하실 수 있는 점</span><span data-lang="en">Why hire me</span></h3>
+          <ul class="strengths strengths-grid">
+            <li data-lang="ko">데모·면접 전날까지 <strong>끝까지 붙어서</strong> 통합을 살려 낸 경험이 있습니다 — 포기하지 않고 임시방편 대신 <strong>원인 추적</strong></li>
+            <li data-lang="en">I <strong>stay on integration</strong> through demo and interview eve — trace root causes instead of hacks</li>
+            <li data-lang="ko"><strong>시뮬·벤치에서 먼저 검증</strong> — 숫자·영상으로 증명하고, 안 되면 숨기지 않습니다 (lab log 스타일)</li>
+            <li data-lang="en"><strong>Sim/bench first</strong> — prove with numbers and video; when it fails, I don’t hide it (lab-log style)</li>
+            <li data-lang="ko"><strong>펌웨어 TCP·PyQt 관제·YOLO 비전·Vue/Three 데모</strong>를 프로젝트마다 직접 이어 붙입니다 — 맡은 영역만 하고 끝내지 않습니다</li>
+            <li data-lang="en">I wire <strong>firmware TCP · PyQt ops · YOLO vision · Vue/Three demos</strong> per project — I don’t stop at “my slice”</li>
+          </ul>
+          <p class="muted" style="margin-top:0.85rem;font-size:0.9rem">
+            <span data-lang="ko">Addinedu Physical AI bootcamp · Jan – Jun 2026 · 팀 프로젝트 4개 완수</span>
+            <span data-lang="en">Addinedu Physical AI bootcamp · Jan – Jun 2026 · 4 shipped team projects</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Gesto — Why -->
+    <section class="slide slide-dense" data-slide="2">
+      <div class="slide-fit reveal">
+        <header class="slide-header">
+          <p class="eyebrow" style="margin-bottom:0.4rem">01 · Deep Learning · DL 4조</p>
+          <div class="slide-title-row">
+            <h2>Gesto <span style="font-size:0.6em;color:var(--muted)">MediaPipe + LSTM</span></h2>
+            <p class="muted" style="font-size:0.88rem;margin:0 0 0.5rem"><span data-lang="ko">발표장 PyQt 데모가 핵심 — 제스처로 PPT·YouTube를 조작</span><span data-lang="en">Stage PyQt demo first — gestures drive PPT &amp; YouTube</span></p>
+            <span class="slide-title-meta">Jan 29 – Feb 6, 2026 · <span data-lang="ko">9일</span><span data-lang="en">9 days</span></span>
+          </div>
+          <div class="slide-header-intro">
+            <div class="slide-header-intro__text">
+              <div class="project-brief card-compact" style="margin:0">
+                <p class="project-brief__label"><span data-lang="ko">프로젝트 소개</span><span data-lang="en">What it is</span></p>
+                <p data-lang="ko">웹캠 제스처로 <strong>PPT·YouTube</strong> 핸즈프리 조작 — <strong>MediaPipe</strong>·<strong>LSTM</strong>·<strong>PyQt6</strong>, <strong>쥐 미로</strong> 게임 모드.</p>
+                <p data-lang="en">Hands-free <strong>PowerPoint</strong> and <strong>YouTube</strong> from a webcam — <strong>MediaPipe</strong>, <strong>LSTM</strong>, <strong>PyQt6</strong>, plus <strong>Rat Labyrinth</strong>.</p>
+              </div>
+            </div>
+            <div class="slide-header-intro__media">
+              <p class="yt-label"><span data-lang="ko">팀 최종 데모 영상</span><span data-lang="en">Team final demo</span></p>
+              <a class="yt-link yt-link--block" href="https://www.youtube.com/watch?v=nKU_hdknbqM&t=3s" target="_blank" rel="noopener">
+                <img src="https://img.youtube.com/vi/nKU_hdknbqM/hqdefault.jpg" alt="Gesto team final demo" class="yt-thumb yt-thumb--hero" loading="lazy" />
+              </a>
+            </div>
+          </div>
+        </header>
+        <div class="slide-body">
+          <div class="slide-col">
+            <div class="card-compact why-block">
+              <strong><span data-lang="ko">이 팀을 선택한 이유</span><span data-lang="en">Why I joined</span></strong>
+              <p data-lang="ko" style="margin-top:0.35rem">DL 4조는 노트북 실험이 아니라 <strong>발표장에서 돌아가는 PyQt 데모</strong>를 목표로 했습니다. 그래서 저는 <strong>PyQt 데스크톱 셸</strong>로 <strong>웹캠 → LSTM → pynput</strong>을 한 화면에 묶고, <strong>LSTM 데이터셋</strong>을 정리하며, 추론 때도 <strong>UI가 얼지 않게</strong> 워커 스레드를 나누기로 했습니다.</p>
+              <p data-lang="en" style="margin-top:0.35rem">DL Team 4 aimed at a <strong>PyQt demo that runs on stage</strong>, not a notebook. I wanted the <strong>desktop shell</strong> wiring <strong>webcam → LSTM → pynput</strong> on one screen, with a clear <strong>dataset · UI · threading</strong> slot for me.</p>
+            </div>
+            <div class="card-compact my-work-block">
+              <strong><span data-lang="ko">이런 일을 맡았습니다</span><span data-lang="en">What I owned</span></strong>
+              <ul class="bullets my-work-block__list">
+                <li data-lang="ko"><strong>PyQt6</strong> 데스크톱 셸 약 <strong>1,600</strong> LOC · <strong>워커 스레드</strong> 구조</li>
+                <li data-lang="en"><strong>PyQt6</strong> desktop shell ~<strong>1,600</strong> LOC · <strong>worker-thread</strong> architecture</li>
+                <li data-lang="ko"><strong>MediaPipe → LSTM → pynput</strong> 파이프라인</li>
+                <li data-lang="en"><strong>MediaPipe → LSTM → pynput</strong> pipeline</li>
+                <li data-lang="ko"><strong>LSTM</strong> 데이터셋 <strong>6,276</strong> 시퀀스</li>
+                <li data-lang="en"><strong>LSTM</strong> dataset · <strong>6,276</strong> sequences</li>
+                <li><strong>Rat Labyrinth</strong> · <strong>14 commits</strong> (deeplearning-repo-4)</li>
+              </ul>
+            </div>
+            <p class="muted slide-footer-muted">DL Team 4</p>
+          </div>
+          <div class="slide-col slide-col--media">
+            <div class="glass glass--media">
+              <p class="yt-label"><span data-lang="ko">PPT 모드 동작</span><span data-lang="en">PPT mode in action</span></p>
+              <div class="media-wrap">
+                <img
+                  class="deck-media deck-media--hero"
+                  src="https://images.prismic.io/woolimi/aaUlj8FoBIGEg9yq_ppt-mode.gif?auto=format,compress"
+                  alt="Gesto PPT mode — gesture slide control"
+                  loading="lazy"
+                />
+              </div>
+              <div class="metrics">
+                <div class="metric"><div class="val">~74%</div><div class="lbl"><span data-lang="ko">LSTM v4</span><span data-lang="en">LSTM v4</span></div></div>
+                <div class="metric"><div class="val">6,276</div><div class="lbl"><span data-lang="ko">시퀀스</span><span data-lang="en">sequences</span></div></div>
+                <div class="metric"><div class="val">14</div><div class="lbl"><span data-lang="ko">커밋</span><span data-lang="en">commits</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Gesto — Hardest -->
+    <section class="slide slide-dense slide--sparse" data-slide="3">
+      <div class="slide-fit">
+        <div class="slide-body grid-2">
+          <div class="glass reveal">
+            <p class="eyebrow">01 · Gesto</p>
+            <h2><span data-lang="ko">발표 직전 UI 멈춤 — 워커 3분할로 데모를 살릴 수 있었습니다</span><span data-lang="en">UI froze before the talk — three workers saved the demo</span></h2>
+            <div class="hardest-block" style="margin-top:0.75rem">
+              <div class="problem-solution" data-lang="ko">
+                <div class="problem-solution__block problem-solution__block--problem">
+                  <span class="problem-solution__label">힘든 점</span><span class="problem-solution__body">발표 직전, <strong>카메라·LSTM·pynput</strong>이 한 스레드에 묶여 추론 중 <strong>UI가 멈추는</strong> 걸 확인했습니다.</span>
+                </div>
+                <div class="problem-solution__block problem-solution__block--solution">
+                  <span class="problem-solution__label">해결한 방법</span><span class="problem-solution__body"><strong>카메라·검출·트리거</strong>를 워커 3분할로 나누고, <strong>ModeController</strong>로 모드별 키 매핑을 분리해 데모 중에도 피드가 살아 있게 했습니다.</span>
+                </div>
+              </div>
+              <div class="problem-solution" data-lang="en">
+                <div class="problem-solution__block problem-solution__block--problem">
+                  <span class="problem-solution__label">Problem</span><span class="problem-solution__body">Before the talk, <strong>camera · LSTM · pynput</strong> on one thread froze the UI during inference.</span>
+                </div>
+                <div class="problem-solution__block problem-solution__block--solution">
+                  <span class="problem-solution__label">Solution</span><span class="problem-solution__body">Split <strong>camera / detection / trigger</strong> into three workers and used <strong>ModeController</strong> for per-mode key mapping so the live feed stayed responsive.</span>
+                </div>
+              </div>
+              <ul class="bullets" style="margin-top:0.55rem">
+                <li data-lang="ko"><strong>LSTM 클래스 불균형</strong> — 수집·재라벨링·증강으로 희소 제스처까지 학습 안정화</li>
+                <li data-lang="en"><strong>LSTM class imbalance</strong> — collection, relabeling, augmentation for rare gestures</li>
+              </ul>
+            </div>
+          </div>
+          <div class="glass reveal">
+            <p class="yt-label"><span data-lang="ko">YouTube 모드 동작</span><span data-lang="en">YouTube mode in action</span></p>
+            <img
+              class="deck-media"
+              src="https://images.prismic.io/woolimi/aaUlkMFoBIGEg9yr_youtube-mode.gif?auto=format,compress"
+              alt="Gesto YouTube gesture control"
+              loading="lazy"
+            />
+            <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">PPT·YouTube·게임 모드별 pynput 매핑</span><span data-lang="en">Per-mode pynput for PPT, YouTube, game</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Gesto — What -->
+    <section class="slide slide-dense slide--sparse" data-slide="4">
+      <div class="slide-fit">
+      <div class="slide-body grid-2">
+        <div class="glass reveal">
+          <p class="eyebrow"><span data-lang="ko">Gesto · 구현</span><span data-lang="en">Gesto · Build</span></p>
+          <h2><span data-lang="ko">PyQt 셸로 웹캠→LSTM→pynput을 한 화면에 묶었습니다</span><span data-lang="en">PyQt shell wired webcam → LSTM → pynput on one screen</span></h2>
+          <div class="flow">
+            <span>Webcam</span><span class="arrow">→</span>
+            <span>MediaPipe 21pt</span><span class="arrow">→</span>
+            <span>30-frame LSTM</span><span class="arrow">→</span>
+            <span>pynput</span>
+          </div>
+          <ul class="bullets">
+            <li data-lang="ko"><strong>PyQt6</strong> UI — 라이브 피드, 모드, 신뢰도 게이지</li>
+            <li data-lang="en"><strong>PyQt6</strong> UI — live feed, modes, confidence gauge</li>
+            <li data-lang="ko"><strong>워커 스레드</strong> — 카메라 / 트리거 / 검출을 UI 스레드 밖으로</li>
+            <li data-lang="en"><strong>Worker threads</strong> — camera / trigger / detection off UI thread</li>
+            <li data-lang="ko"><strong>LSTM 데이터셋</strong> — 6,276개 `.npy` 시퀀스 (30×21×3)</li>
+            <li data-lang="en"><strong>LSTM dataset</strong> — 6,276 `.npy` sequences (30×21×3)</li>
+            <li data-lang="ko"><strong>ModeController</strong> → PPT·YouTube·게임별 pynput</li>
+            <li data-lang="en"><strong>ModeController</strong> → pynput per PPT, YouTube, game</li>
+          </ul>
+        </div>
+        <div class="glass reveal">
+          <img src="assets/gesto/deck-pipeline.png" alt="Gesto pipeline — landmarks to LSTM" loading="lazy" />
+          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">팀 덱 — 랜드마크 → 30프레임 LSTM</span><span data-lang="en">Team deck — landmarks → 30-frame LSTM</span></p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Gesto — Proof -->
+    <section class="slide slide-dense slide--sparse" data-slide="5">
+      <div class="slide-fit">
+      <div class="slide-body grid-2">
+        <div class="glass reveal">
+          <p class="eyebrow"><span data-lang="ko">Gesto · 검증</span><span data-lang="en">Gesto · Proof</span></p>
+          <h2><span data-lang="ko">74% LSTM·GIF로 발표장 제스처를 증명할 수 있었습니다</span><span data-lang="en">74% LSTM + GIF proved stage gestures</span></h2>
+          <div class="metrics">
+            <div class="metric"><div class="val">~74%</div><div class="lbl"><span data-lang="ko">제스처 평균 정확도 · LSTM v4</span><span data-lang="en">gesture avg accuracy · LSTM v4</span></div></div>
+            <div class="metric"><div class="val">~89%</div><div class="lbl"><span data-lang="ko">Swipe Left 제스처</span><span data-lang="en">Swipe Left gesture</span></div></div>
+            <div class="metric"><div class="val">6,276</div><div class="lbl"><span data-lang="ko">학습 시퀀스</span><span data-lang="en">training sequences</span></div></div>
+          </div>
+          <ul class="bullets" style="margin-top:0.75rem">
+            <li data-lang="ko">PPT·YouTube 모드 <strong>GIF</strong> + 팀 <strong>YouTube 데모</strong>로 발표장 동작을 증명했습니다</li>
+            <li data-lang="en"><strong>GIFs</strong> for PPT/YouTube modes + team <strong>YouTube demo</strong> as stage proof</li>
+            <li data-lang="ko"><strong>클래스 불균형</strong> — 희소 제스처는 수집·재라벨링으로 보완 (Swipe Left ~89%)</li>
+            <li data-lang="en"><strong>Class imbalance</strong> — rare gestures fixed via collection &amp; relabeling (Swipe Left ~89%)</li>
+          </ul>
+          <p class="muted" style="margin-top:0.75rem;font-size:0.82rem;font-family:var(--mono)">deeplearning-repo-4 · 14 commits · Rat Labyrinth</p>
+        </div>
+        <div class="glass reveal">
+          <p class="yt-label"><span data-lang="ko">YouTube 모드 동작</span><span data-lang="en">YouTube mode in action</span></p>
+          <img
+            class="deck-media"
+            src="https://images.prismic.io/woolimi/aaUlkMFoBIGEg9yr_youtube-mode.gif?auto=format,compress"
+            alt="Gesto YouTube gesture control"
+            loading="lazy"
+          />
+          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">PPT·YouTube·게임 모드별 pynput 매핑</span><span data-lang="en">Per-mode pynput for PPT, YouTube, game</span></p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: IoT — Why -->
+    <section class="slide slide-dense" data-slide="6">
+      <div class="slide-fit reveal">
+        <header class="slide-header">
+          <p class="eyebrow" style="margin-bottom:0.4rem">02 · IoT · IoT 2조</p>
+          <div class="slide-title-row">
+            <h2><span data-lang="ko">오주의 마법사</span><span data-lang="en">Wizard of Parking</span> <span style="font-size:0.55em;color:var(--muted)"><span data-lang="ko">Wizard of Parking</span><span data-lang="en">오주의 마법사</span></span></h2>
+            <p class="muted" style="font-size:0.88rem;margin:0 0 0.5rem"><span data-lang="ko">실물 타워 + ESP32 3대 — PyQt 관제실로 입출차를 맡고 있습니다</span><span data-lang="en">Physical tower + 3 ESP32s — PyQt control room runs entry/exit</span></p>
+            <span class="slide-title-meta">Feb 23 – Mar 4, 2026 · <span data-lang="ko">10일</span><span data-lang="en">10 days</span></span>
+          </div>
+          <div class="slide-header-intro">
+            <div class="slide-header-intro__text">
+              <div class="project-brief card-compact" style="margin:0">
+                <p class="project-brief__label"><span data-lang="ko">프로젝트 소개</span><span data-lang="en">What it is</span></p>
+                <p data-lang="ko">미니 <strong>회전식 스마트 주차 타워</strong> — <strong>ESP32 3대</strong> 펌웨어, <strong>LPR</strong>, <strong>PyQt6</strong> 관제실로 입출차·결제까지 운영.</p>
+                <p data-lang="en">Miniature <strong>rotary smart-parking tower</strong> — <strong>3× ESP32</strong> firmware, <strong>LPR</strong>, and a <strong>PyQt6</strong> control room for the full park-and-pay flow.</p>
+              </div>
+            </div>
+            <div class="slide-header-intro__media">
+              <p class="yt-label"><span data-lang="ko">타워 제어 UI 리허설</span><span data-lang="en">Tower control UI rehearsal</span></p>
+              <video
+                class="deck-media deck-media--hero"
+                src="assets/iot/image69.webm"
+                muted
+                loop
+                playsinline
+                aria-label="IoT tower control UI rehearsal"
+              ></video>
+            </div>
+          </div>
+        </header>
+        <div class="slide-body">
+          <div class="slide-col">
+            <div class="card-compact why-block">
+              <strong><span data-lang="ko">이 팀을 선택한 이유</span><span data-lang="en">Why I joined</span></strong>
+              <p data-lang="ko" style="margin-top:0.35rem">IoT 2조는 회전 주차 <strong>실물 모형</strong>에 <strong>ESP32 3대</strong>·<strong>FastAPI</strong>가 동시에 붙는 팀이었습니다. 저는 <strong>33바이트 TCP</strong>로 타워 상태를 읽어 <strong>PyQt 관제실</strong>에 반영하는 통합을 맡고 싶었고, 후반 관제 일정이 밀리자 제가 <strong>IR 안내 펌웨어 + 멀티캠 UI + LPR 검증 창</strong>까지 이어서 데모를 살려 낼 수 있었습니다.</p>
+              <p data-lang="en" style="margin-top:0.35rem">IoT Team 2 ran a rotary <strong>physical model</strong> with <strong>3 ESP32s</strong> and <strong>FastAPI</strong>. I wanted to own <strong>33-byte TCP</strong> tower state into the <strong>PyQt control room</strong>. When the control-room schedule slipped, I took <strong>IR guidance firmware · multi-cam UI · LPR verify window</strong> through demo day.</p>
+            </div>
+            <div class="card-compact my-work-block">
+              <strong><span data-lang="ko">이런 일을 맡았습니다</span><span data-lang="en">What I owned</span></strong>
+              <ul class="bullets my-work-block__list">
+                <li data-lang="ko"><strong>ESP32</strong> 주차 안내 펌웨어 — <strong>33바이트</strong> 패킷, <strong>UDP/TCP</strong></li>
+                <li data-lang="en"><strong>ESP32</strong> parking-guide firmware — <strong>33-byte</strong> packets, <strong>UDP/TCP</strong></li>
+                <li data-lang="ko"><strong>PyQt6</strong> 관제실 — 멀티캠, <strong>33B TCP</strong> 타워 연동</li>
+                <li data-lang="en"><strong>PyQt6</strong> control room — multi-cam, <strong>33B TCP</strong> tower sync</li>
+                <li data-lang="ko"><strong>PaddleOCR LPR</strong> 입·출차 검증 창 — 자동화 전 번호판 확인</li>
+                <li data-lang="en"><strong>PaddleOCR LPR</strong> enter/exit verify UI — plate check before automation</li>
+                <li data-lang="ko"><strong>LPR</strong> 각도·조명 전처리 튜닝 + 데모 <strong>웹캠</strong> 복구 (OpenCV)</li>
+                <li data-lang="en"><strong>LPR</strong> angle/lighting preprocess tuning + demo <strong>webcam</strong> recovery (OpenCV)</li>
+              </ul>
+            </div>
+            <p class="muted slide-footer-muted">ESP32-CAM rotary tower · 6-person team</p>
+          </div>
+          <div class="slide-col slide-col--media">
+            <div class="glass glass--media">
+              <p class="yt-label"><span data-lang="ko">3계층 아키텍처</span><span data-lang="en">3-tier architecture</span></p>
+              <div class="media-wrap">
+                <img src="assets/iot/deck-architecture.png" alt="IoT 3-tier architecture" loading="lazy" class="deck-media deck-media--hero" />
+              </div>
+              <div class="metrics">
+                <div class="metric"><div class="val">~94.3%</div><div class="lbl"><span data-lang="ko">LPR</span><span data-lang="en">LPR</span></div></div>
+                <div class="metric"><div class="val">±2mm</div><div class="lbl"><span data-lang="ko">리프트</span><span data-lang="en">lift</span></div></div>
+                <div class="metric"><div class="val">33B</div><div class="lbl"><span data-lang="ko">TCP</span><span data-lang="en">TCP</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: IoT — My work -->
+    <section class="slide slide-dense slide--sparse" data-slide="7">
+      <div class="slide-fit">
+        <div class="slide-body grid-2">
+          <div class="glass reveal">
+            <p class="eyebrow">02 · IoT</p>
+            <h2><span data-lang="ko">관제 일정이 밀리자 펌웨어·멀티캠·LPR까지 이어받았습니다</span><span data-lang="en">Control room slipped — I took firmware, multi-cam &amp; LPR</span></h2>
+            <ul class="bullets" style="margin-top:0.75rem">
+              <li data-lang="ko"><strong>ESP32 IR 존 + TCP 바이트 프로토콜</strong>을 PyQt와 맞추며 패킷 깨짐 디버깅</li>
+              <li data-lang="en"><strong>ESP32 IR zones + TCP byte protocol</strong> aligned with PyQt — debugging corrupted packets</li>
+              <li data-lang="ko">여러 <strong>ESP32-CAM UDP 스트림</strong> + 관제 단일 UI 동기화</li>
+              <li data-lang="en">Multiple <strong>ESP32-CAM UDP streams</strong> synced into one control UI</li>
+              <li data-lang="ko">데모 노트북 웹캠 enumeration 실패 시 <strong>OpenCV 재시도·인덱스 스캔</strong>으로 복구</li>
+              <li data-lang="en">Demo laptop webcam enumeration fail — <strong>OpenCV retry &amp; index scan</strong> recovery</li>
+              <li data-lang="ko"><strong>LPR 각도·조명 편차</strong> — 자동만 믿지 않고 운영자 검증 UI</li>
+              <li data-lang="en"><strong>LPR angle/lighting variance</strong> — operator verification UI, not automation-only</li>
+            </ul>
+          </div>
+          <div class="glass reveal">
+            <p class="yt-label"><span data-lang="ko">관리자 통합 대시보드</span><span data-lang="en">Admin integrated dashboard</span></p>
+            <img src="assets/iot-admin-dashboard.png" alt="Smart parking admin dashboard — CCTV, LPR cameras, device status" loading="lazy" class="deck-media" />
+            <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">CCTV·LPR·장비목록을 한 화면에서 실시간 모니터링</span><span data-lang="en">Real-time CCTV, LPR &amp; device list in one view</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: IoT — What -->
+    <section class="slide slide-dense slide--sparse" data-slide="8">
+      <div class="slide-fit">
+      <div class="slide-body grid-2">
+        <div class="glass reveal">
+          <p class="eyebrow"><span data-lang="ko">IoT · 구현</span><span data-lang="en">IoT · Build</span></p>
+          <h2><span data-lang="ko">33-byte TCP·UDP 멀티캠을 PyQt 상태머신에 맞췄습니다</span><span data-lang="en">Aligned 33-byte TCP &amp; UDP multi-cam to PyQt state machine</span></h2>
+          <ul class="bullets">
+            <li data-lang="ko"><strong>ESP32</strong> — IR 존, WiFi TCP, PING/PONG, LCD</li>
+            <li data-lang="en"><strong>ESP32</strong> — IR zones, WiFi TCP, PING/PONG, LCD</li>
+            <li data-lang="ko"><strong>ESP32-CAM UDP</strong> — 멀티카메라 프리뷰 경로</li>
+            <li data-lang="en"><strong>ESP32-CAM UDP</strong> — multi-camera preview path</li>
+            <li data-lang="ko"><strong>PyQt6</strong> 운영 UI — 연결 상태, 전송 매니저</li>
+            <li data-lang="en"><strong>PyQt6</strong> operator UI — connection state, transmission manager</li>
+            <li data-lang="ko"><strong>PaddleOCR LPR</strong> 테스트 창 — 자동 입출차 전 <strong>번호판 오독</strong>을 운영자가 확인</li>
+            <li data-lang="en"><strong>PaddleOCR LPR</strong> test window — operator confirms <strong>misread plates</strong> before auto gate</li>
+            <li data-lang="ko">데모 노트북 웹캠 복구 (USB 재열거, 재시도)</li>
+            <li data-lang="en">Webcam recovery on demo laptops (USB re-enumeration, retry)</li>
+          </ul>
+        </div>
+        <div class="glass reveal">
+          <p class="yt-label"><span data-lang="ko">디바이스 클라이언트 대시보드</span><span data-lang="en">Device client dashboard</span></p>
+          <img src="assets/iot-device-client-dashboard.png" alt="Smart parking device client — LPR cameras, equipment connection status" loading="lazy" class="deck-media" />
+          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">입·출구 LPR 카메라와 장비 연결 상태를 PyQt에서 직접 확인</span><span data-lang="en">Entrance/exit LPR feeds &amp; device links in PyQt client</span></p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: IoT — Proof -->
+    <section class="slide slide-dense slide--sparse" data-slide="9">
+      <div class="slide-fit">
+      <div class="slide-body grid-2">
+        <div class="glass reveal">
+          <p class="eyebrow"><span data-lang="ko">IoT · 검증</span><span data-lang="en">IoT · Proof</span></p>
+          <h2><span data-lang="ko">94.3% LPR·±2mm 리프트로 데모 입출차를 통과할 수 있었습니다</span><span data-lang="en">94.3% LPR &amp; ±2mm lift cleared demo entry/exit</span></h2>
+          <div class="metrics">
+            <div class="metric"><div class="val">~94.3%</div><div class="lbl"><span data-lang="ko">번호판 인식 (LPR)</span><span data-lang="en">plate read (LPR)</span></div></div>
+            <div class="metric"><div class="val">TC</div><div class="lbl"><span data-lang="ko">전체 통과</span><span data-lang="en">all pass</span></div></div>
+            <div class="metric"><div class="val">±2mm</div><div class="lbl"><span data-lang="ko">타워 리프트 오차</span><span data-lang="en">tower lift error</span></div></div>
+          </div>
+          <p class="muted" style="margin-top:0.75rem;font-size:0.82rem;font-family:var(--mono)">PyQt6 ↔ FastAPI ↔ ESP32·Arduino · 33-byte TCP · ESP32-CAM UDP</p>
+          <ul class="bullets" style="margin-top:0.55rem">
+            <li data-lang="ko">타워 제어 UI <strong>리허설 영상</strong> + 관리자 대시보드 캡처로 현장 흐름을 증명했습니다</li>
+            <li data-lang="en">Tower control <strong>rehearsal video</strong> + admin dashboard capture as field proof</li>
+          </ul>
+        </div>
+        <div class="glass reveal">
+          <video
+            class="deck-media"
+            src="assets/iot/image69.webm"
+            muted
+            loop
+            playsinline
+            aria-label="IoT tower control UI rehearsal"
+          ></video>
+          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">타워 제어 UI — 차판 배정·리프트 로그</span><span data-lang="en">Tower control UI — slot assignment &amp; lift log</span></p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: ShopPinkki — Why -->
+    <section class="slide slide-dense" data-slide="10">
+      <div class="slide-fit reveal">
+        <header class="slide-header">
+          <p class="eyebrow" style="margin-bottom:0.4rem">03 · ROS · ROS 2조 (삥끼랩)</p>
+          <div class="slide-title-row">
+            <h2>ShopPinkki <span style="font-size:0.55em;color:var(--muted)"><span data-lang="ko">쑈삥끼</span><span data-lang="en">ShopPinkki</span></span></h2>
+            <p class="muted" style="font-size:0.88rem;margin:0 0 0.5rem"><span data-lang="ko">마트 세트에서 YOLO·ReID가 곧바로 카트 주행으로 이어집니다</span><span data-lang="en">Mart set — YOLO·ReID feeds cart motion directly</span></p>
+            <span class="slide-title-meta">Apr 3 – Apr 14, 2026 · <span data-lang="ko">12일</span><span data-lang="en">12 days</span></span>
+          </div>
+          <div class="slide-header-intro">
+            <div class="slide-header-intro__text">
+              <div class="project-brief card-compact" style="margin:0">
+                <p class="project-brief__label"><span data-lang="ko">프로젝트 소개</span><span data-lang="en">What it is</span></p>
+                <p data-lang="ko"><strong>ROS 2</strong> <strong>Pinky Pro</strong> 마트 카트 — <strong>YOLOv8</strong>·<strong>ByteTrack</strong>·<strong>ReID</strong>로 주인을 따라가는 미니 마트 추종.</p>
+                <p data-lang="en"><strong>ROS 2</strong> <strong>Pinky Pro</strong> mart cart — <strong>owner follow</strong> with <strong>YOLOv8</strong>, <strong>ByteTrack</strong>, and <strong>ReID</strong> in a miniature store.</p>
+              </div>
+            </div>
+            <div class="slide-header-intro__media">
+              <p class="yt-label"><span data-lang="ko">팀 최종 데모 영상</span><span data-lang="en">Team final demo</span></p>
+              <a class="yt-link yt-link--block" href="https://www.youtube.com/watch?v=1D6by66nWtA&t=12s" target="_blank" rel="noopener">
+                <img src="https://img.youtube.com/vi/1D6by66nWtA/hqdefault.jpg" alt="ShopPinkki team final demo" class="yt-thumb yt-thumb--hero" loading="lazy" />
+              </a>
+            </div>
+          </div>
+        </header>
+        <div class="slide-body">
+          <div class="slide-col">
+            <div class="card-compact why-block">
+              <strong><span data-lang="ko">이 팀을 선택한 이유</span><span data-lang="en">Why I joined</span></strong>
+              <p data-lang="ko" style="margin-top:0.35rem">ROS 2조는 <strong>카메라 인식이 곧바로 카트 주행</strong>으로 이어지는 팀이었습니다. 저는 마트 세트 영상에서 <strong>YOLO·ByteTrack·ReID 파이프라인</strong>과 <strong>Safe-ID</strong> 튜닝을 맡아, 주인을 놓치지 않는 추종을 직접 검증하고 싶었습니다.</p>
+              <p data-lang="en" style="margin-top:0.35rem">ROS Team 2 tied <strong>camera perception directly to cart motion</strong>. I wanted to own <strong>YOLO · ByteTrack · ReID</strong> and <strong>Safe-ID</strong> tuning so owner follow stayed stable on the mart set footage.</p>
+            </div>
+            <div class="card-compact my-work-block">
+              <strong><span data-lang="ko">이런 일을 맡았습니다</span><span data-lang="en">What I owned</span></strong>
+              <ul class="bullets my-work-block__list">
+                <li data-lang="ko"><strong>YOLO → ByteTrack → ReID</strong> 추종 파이프라인</li>
+                <li data-lang="en"><strong>YOLO → ByteTrack → ReID</strong> follow pipeline</li>
+                <li data-lang="ko"><strong>5-frame Safe-ID</strong> 락</li>
+                <li data-lang="en"><strong>5-frame Safe-ID</strong> lock</li>
+                <li data-lang="ko"><strong>MobileNetV3 ReID</strong> + <strong>NCNN</strong> 실험</li>
+                <li data-lang="en"><strong>MobileNetV3 ReID</strong> + <strong>NCNN</strong> experiments</li>
+                <li><strong>9 commits</strong> (ros-repo-2)</li>
+              </ul>
+            </div>
+            <p class="muted slide-footer-muted">Pinky Pro</p>
+          </div>
+          <div class="slide-col slide-col--media">
+            <div class="glass glass--media">
+              <p class="yt-label"><span data-lang="ko">통합 마트 주행 클립</span><span data-lang="en">Integrated mart run</span></p>
+              <div class="media-wrap">
+                <video
+                  class="deck-media deck-media--hero"
+                  src="https://woolimi.cdn.prismic.io/woolimi/aee1FsBOoF08xL-c_final-demo.mp4"
+                  muted
+                  loop
+                  playsinline
+                  aria-label="ShopPinkki integrated mart final demo"
+                ></video>
+              </div>
+              <div class="metrics">
+                <div class="metric"><div class="val">Safe-ID</div><div class="lbl"><span data-lang="ko">5프레임</span><span data-lang="en">5-frame</span></div></div>
+                <div class="metric"><div class="val">YOLOv8</div><div class="lbl">ByteTrack</div></div>
+                <div class="metric"><div class="val">9</div><div class="lbl"><span data-lang="ko">커밋</span><span data-lang="en">commits</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: ShopPinkki — Hardest -->
+    <section class="slide slide-dense slide--sparse" data-slide="11">
+      <div class="slide-fit">
+        <div class="slide-body grid-2">
+          <div class="glass reveal">
+            <p class="eyebrow">03 · ShopPinkki</p>
+            <h2><span data-lang="ko">인형 오검출·ID 스왑 — Safe-ID로 주인 추종을 지킬 수 있었습니다</span><span data-lang="en">Doll false positives &amp; ID swap — Safe-ID kept owner follow</span></h2>
+            <div class="hardest-block" style="margin-top:0.75rem">
+              <div class="problem-solution" data-lang="ko">
+                <div class="problem-solution__block problem-solution__block--problem">
+                  <span class="problem-solution__label">힘든 점</span><span class="problem-solution__body">마트 영상에서 <strong>인형·선반 오검출</strong>과 사람 교차 시 <strong>ID 스왑</strong>이 겹쳤습니다.</span>
+                </div>
+                <div class="problem-solution__block problem-solution__block--solution">
+                  <span class="problem-solution__label">해결한 방법</span><span class="problem-solution__body"><strong>YOLO</strong> 클래스·ROI 분리로 주인 추적을 유지하고, <strong>5-frame Safe-ID</strong>로 ReID 부담·지연을 절충했습니다.</span>
+                </div>
+              </div>
+              <div class="problem-solution" data-lang="en">
+                <div class="problem-solution__block problem-solution__block--problem">
+                  <span class="problem-solution__label">Problem</span><span class="problem-solution__body"><strong>Doll/shelf false positives</strong> in mart footage plus <strong>ID swap</strong> when people crossed paths.</span>
+                </div>
+                <div class="problem-solution__block problem-solution__block--solution">
+                  <span class="problem-solution__label">Solution</span><span class="problem-solution__body"><strong>YOLO</strong> class &amp; ROI split kept owner track; <strong>5-frame Safe-ID</strong> balanced ReID load and latency.</span>
+                </div>
+              </div>
+            </div>
+            <div class="flow" style="margin-top:1rem">
+              <span>RGB cam</span><span class="arrow">→</span>
+              <span>YOLOv8</span><span class="arrow">→</span>
+              <span>ByteTrack</span><span class="arrow">→</span>
+              <span>ReID</span><span class="arrow">→</span>
+              <span>Safe-ID</span>
+            </div>
+          </div>
+          <div class="glass reveal">
+            <!-- shoppinkki #/36(37-tracking-demo) 인형 인식 파이프라인 데모 — Prismic MP4 -->
+            <video
+              class="deck-media"
+              src="https://woolimi.cdn.prismic.io/woolimi/ad_Me51ZCF7ETObD_yolo_reid_bytetracker.mp4"
+              muted
+              loop
+              playsinline
+              aria-label="ShopPinkki doll detection — YOLO ByteTrack ReID test"
+            ></video>
+            <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">인형 인식 모델 테스트 — YOLO · ByteTrack · ReID</span><span data-lang="en">Doll detection test — YOLO · ByteTrack · ReID</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: ShopPinkki — What -->
+    <section class="slide slide-dense slide--sparse" data-slide="12">
+      <div class="slide-fit">
+      <div class="slide-body grid-2">
+        <div class="glass reveal">
+          <p class="eyebrow"><span data-lang="ko">ShopPinkki · 구현</span><span data-lang="en">ShopPinkki · Build</span></p>
+          <h2><span data-lang="ko">5-frame Safe-ID로 ReID 지연을 줄이고 Pi에 맞췄습니다</span><span data-lang="en">5-frame Safe-ID cut ReID lag for the Pi</span></h2>
+          <div class="flow">
+            <span>RGB cam</span><span class="arrow">→</span>
+            <span>YOLOv8</span><span class="arrow">→</span>
+            <span>ByteTrack</span><span class="arrow">→</span>
+            <span>ReID</span><span class="arrow">→</span>
+            <span>Safe-ID</span>
+          </div>
+          <ul class="bullets">
+            <li data-lang="ko"><strong>Safe-ID 락</strong> — 락 후 5프레임 ReID 생략</li>
+            <li data-lang="en"><strong>Safe-ID lock</strong> — skip ReID for 5 frames after lock</li>
+            <li data-lang="ko"><strong>ReID 백본</strong> — OSNet → MobileNetV3 + HSV 폴백</li>
+            <li data-lang="en"><strong>ReID backbone</strong> — OSNet → MobileNetV3 + HSV fallback</li>
+            <li data-lang="ko"><strong>NCNN</strong>보내기 — Pi 5 엣지 추론 테스트</li>
+            <li data-lang="en"><strong>NCNN</strong> export tests for Pi 5 edge inference</li>
+            <li data-lang="ko">최종 데모용 온로봇 LCD/QR 레이아웃</li>
+            <li data-lang="en">On-robot LCD/QR layout for final demo</li>
+          </ul>
+          <div class="hardest-block hardest-block--learned" style="margin-top:1rem">
+            <div class="problem-solution" data-lang="ko">
+              <div class="problem-solution__block problem-solution__block--learned">
+                <span class="problem-solution__label">배운 점</span><span class="problem-solution__body">프레임마다 ReID를 돌리면 Pi에서 <strong>추적이 한 박자 늦게</strong> 느껴졌습니다. <strong>5-frame Safe-ID</strong>로 락 구간 ReID를 건너뛰고, <strong>MobileNetV3 + NCNN</strong>으로 엣지 부담을 줄였습니다.</span>
+              </div>
+            </div>
+            <div class="problem-solution" data-lang="en">
+              <div class="problem-solution__block problem-solution__block--learned">
+                <span class="problem-solution__label">Lessons learned</span><span class="problem-solution__body">Running ReID every frame made follow feel <strong>one beat late</strong> on the Pi. <strong>5-frame Safe-ID</strong> skips ReID while locked; <strong>MobileNetV3 + NCNN</strong> cut edge load.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="glass reveal">
+          <!-- shoppinkki #/32(33-tracking) 추종 데모 — Prismic MP4 (해당 슬라이드는 GIF 없음) -->
+          <video
+            class="deck-media"
+            src="https://woolimi.cdn.prismic.io/woolimi/ad-Dd51ZCF7ETNkJ_tracking_muted.mp4"
+            muted
+            loop
+            playsinline
+            aria-label="ShopPinkki owner tracking demo"
+          ></video>
+          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">YOLO · ByteTrack · ReID 추종</span><span data-lang="en">YOLO · ByteTrack · ReID owner follow</span></p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: ShopPinkki — Proof -->
+    <section class="slide slide-dense slide--sparse" data-slide="13" data-deck-video-slide>
+      <div class="slide-fit">
+      <div class="slide-body grid-2">
+        <div class="glass reveal slide-deck-copy">
+          <p class="eyebrow"><span data-lang="ko">ShopPinkki · 검증</span><span data-lang="en">ShopPinkki · Proof</span></p>
+          <h2><span data-lang="ko">통합 마트 영상으로 추종 모드를 증명할 수 있었습니다</span><span data-lang="en">Integrated mart video proved follow mode</span></h2>
+          <ul class="bullets">
+            <li data-lang="ko">팀 통합 마트 <strong>MP4</strong>에서 추종 모드가 안정적으로 동작함을 보였습니다 — 옆 클립이 증거입니다</li>
+            <li data-lang="en">Follow stable on team <strong>mart MP4</strong> — clip on the right is proof</li>
+            <li data-lang="ko"><strong>shoppinkki.pdf</strong> 인식 섹션 · <strong>9 commits</strong> · NCNN 엣지 실험</li>
+            <li data-lang="en"><strong>shoppinkki.pdf</strong> perception · <strong>9 commits</strong> · NCNN edge tests</li>
+            <li data-lang="ko">5-frame Safe-ID — 사람 교차 시 ID 스왑 감소 (슬라이드 12 참고)</li>
+            <li data-lang="en">5-frame Safe-ID — less ID swap on cross (see slide 11)</li>
+          </ul>
+          <p class="muted" style="margin-top:0.75rem;font-size:0.82rem;font-family:var(--mono)">ros-repo-2 · 9 commits · shoppinkki.pdf perception section</p>
+        </div>
+        <div class="glass reveal slide-deck-media">
+          <p class="yt-label"><span data-lang="ko">통합 마트 주행 클립</span><span data-lang="en">Integrated mart run</span></p>
+          <video
+            class="deck-media"
+            src="https://woolimi.cdn.prismic.io/woolimi/aee1FsBOoF08xL-c_final-demo.mp4"
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            aria-label="ShopPinkki integrated mart final demo"
+          ></video>
+          <p class="muted" style="margin-top:0.35rem;font-size:0.78rem;text-align:center"><span data-lang="ko">YOLO·ByteTrack·ReID 추종 — 팀 최종 데모</span><span data-lang="en">YOLO · ByteTrack · ReID follow — team final demo</span></p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 15: EduPing — Why -->
+    <section class="slide slide-dense" data-slide="14">
+      <div class="slide-fit reveal">
+        <header class="slide-header">
+          <p class="eyebrow" style="margin-bottom:0.4rem">04 · Physical AI · Team EduPing</p>
+          <div class="slide-title-row">
+            <h2>pingdergarten / EduPing</h2>
+            <p class="muted" style="font-size:0.88rem;margin:0 0 0.5rem"><span data-lang="ko">아이 앞 브라우저 로봇 — 하이파이브·등하원·무궁화가 한 덱의 정점</span><span data-lang="en">Browser robot for kids — high-five, attendance, Mugunghwa capstone</span></p>
+            <span class="slide-title-meta">Apr 23 – Jun 4, 2026 · <span data-lang="ko">43일</span><span data-lang="en">43 days</span></span>
+          </div>
+          <div class="slide-header-intro slide-header-intro--stacked">
+            <div class="slide-header-intro__text">
+              <div class="project-brief card-compact" style="margin:0">
+                <p class="project-brief__label"><span data-lang="ko">프로젝트 소개</span><span data-lang="en">What it is</span></p>
+                <p data-lang="ko">유치원 보조 <strong>pingdergarten</strong> — <strong>하이파이브</strong>, <strong>등하원</strong>, <strong>무궁화</strong> 율동 게임까지 <strong>브라우저</strong>에서 돌아가는 <strong>OpenArm</strong> + <strong>Vue/Three.js</strong> + <strong>ROS 2</strong>.</p>
+                <p data-lang="en">Kindergarten assistant <strong>pingdergarten</strong> — <strong>high-five</strong>, <strong>attendance</strong>, and <strong>Mugunghwa</strong> rhythm game in the <strong>browser</strong> on <strong>OpenArm</strong> + <strong>Vue/Three.js</strong> + <strong>ROS 2</strong>.</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div class="slide-body">
+          <div class="slide-col">
+            <div class="card-compact why-block">
+              <strong><span data-lang="ko">이 팀을 선택한 이유</span><span data-lang="en">Why I joined</span></strong>
+              <p data-lang="ko" style="margin-top:0.35rem">마지막 <strong>Physical AI</strong> 캡스톤 — <strong>아이 앞 브라우저 로봇</strong>(하이파이브·등하원·율동)을 만들 팀이었습니다. 저는 <strong>Vue/Three.js 관제 UI</strong>와 <strong>D435 포인트클라우드</strong>, <strong>하이파이브 폐루프</strong>를 맡아 Gesto·IoT·ROS에서 쌓은 <strong>비전→UI→로봇</strong> 선을 이어가고 싶었습니다.</p>
+              <p data-lang="en" style="margin-top:0.35rem">Final <strong>Physical AI</strong> capstone — a team building a <strong>browser robot for real kids</strong> (high-five, attendance, dance). I wanted <strong>Vue/Three.js control UI</strong>, <strong>D435 point cloud</strong>, and the <strong>high-five closed loop</strong> to continue my <strong>vision → UI → robot</strong> line from Gesto, IoT, and ROS.</p>
+            </div>
+            <div class="card-compact my-work-block">
+              <strong><span data-lang="ko">이런 일을 맡았습니다</span><span data-lang="en">What I owned</span></strong>
+              <ul class="bullets my-work-block__list">
+                <li data-lang="ko"><strong>하이파이브</strong> — D435 뎁스 → <strong>TRAC-IK</strong> + <strong>FK</strong> 잔차 (<strong>~28cm → ~2cm</strong>)</li>
+                <li data-lang="en"><strong>High-five</strong> — D435 depth → <strong>TRAC-IK</strong> + <strong>FK</strong> residual (<strong>~28cm → ~2cm</strong>)</li>
+                <li data-lang="ko"><strong>무궁화</strong> — ‘무궁화꽃이 피었습니다’ 게임 셸, 박자·녹화 UI, 모션+음원 WS 재생</li>
+                <li data-lang="en"><strong>Mugunghwa</strong> — red-light-green-light game shell, beat sync, record UI, motion+audio WS playback</li>
+                <li data-lang="ko"><strong>등하원</strong>·<strong>OX 퀴즈</strong> UI + 포털 <strong>일과 보고서</strong> Q&A 페이지</li>
+                <li data-lang="en"><strong>Attendance</strong> · <strong>O/X quiz</strong> UI + portal <strong>daily report</strong> Q&amp;A pages</li>
+                <li><strong>Vue 3</strong> · <strong>Three.js</strong> · <strong>D435</strong> zstd WS · <strong>~68 commits</strong></li>
+              </ul>
+            </div>
+            <p class="muted slide-footer-muted"><span data-lang="ko">Apr – Jun 2026 · MuJoCo 트윈 · D435 zstd WS</span><span data-lang="en">Apr – Jun 2026 · MuJoCo twin · D435 zstd WS</span></p>
+          </div>
+          <div class="slide-col slide-col--media slide-col--media-feature">
+            <div class="glass glass--media glass--demo-thumb">
+              <p class="yt-label"><span data-lang="ko">팀 최종 데모 영상</span><span data-lang="en">Team final demo</span></p>
+              <div class="media-wrap media-wrap--yt">
+                <a class="yt-link yt-link--block" href="https://www.youtube.com/watch?v=cLSg0PMTroY&t=9s" target="_blank" rel="noopener noreferrer">
+                  <img
+                    src="https://img.youtube.com/vi/cLSg0PMTroY/maxresdefault.jpg"
+                    alt="EduPing team final demo — pingdergarten kindergarten robot"
+                    class="yt-thumb yt-thumb--hero yt-thumb--panel"
+                    loading="lazy"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 16: EduPing — Hardest + demo -->
+    <section class="slide slide-dense slide--sparse" data-slide="15">
+      <div class="slide-fit">
+        <div class="slide-body grid-2">
+          <div class="glass reveal">
+            <p class="eyebrow">04 · EduPing</p>
+            <h2><span data-lang="ko">하이파이브 28cm 오차를 FK 잔차로 2cm까지 좁힐 수 있었습니다</span><span data-lang="en">High-five miss shrank 28cm → 2cm with FK residual</span></h2>
+            <div class="hardest-block" style="margin-top:0.5rem">
+              <strong><span data-lang="ko">핵심 장애</span><span data-lang="en">Core blockers</span></strong>
+              <div class="problem-solution" data-lang="ko">
+                <div class="problem-solution__block problem-solution__block--problem">
+                  <span class="problem-solution__label">힘든 점</span><span class="problem-solution__body"><strong>하이파이브</strong>는 IK만으로 손이 ~28cm 빗나갔고, <strong>무궁화</strong>는 음악 박자와 양팔 가리기 모션이 어긋나면 아이 체험이 깨졌습니다.</span>
+                </div>
+                <div class="problem-solution__block problem-solution__block--solution">
+                  <span class="problem-solution__label">해결한 방법</span><span class="problem-solution__body"><strong>TRAC-IK + FK 잔차</strong> 폐루프로 접촉을 맞추고, 무궁화는 <strong>녹화 UI + WS 모션·오디오 스트림</strong>으로 박자를 맞췄습니다.</span>
+                </div>
+              </div>
+              <div class="problem-solution" data-lang="en">
+                <div class="problem-solution__block problem-solution__block--problem">
+                  <span class="problem-solution__label">Problem</span><span class="problem-solution__body"><strong>High-five</strong> missed ~28cm with IK alone; <strong>Mugunghwa</strong> broke if beat and dual-arm cover motion drifted.</span>
+                </div>
+                <div class="problem-solution__block problem-solution__block--solution">
+                  <span class="problem-solution__label">Solution</span><span class="problem-solution__body"><strong>TRAC-IK + FK residual</strong> closed the gap; Mugunghwa used <strong>record UI + WS motion/audio stream</strong> for beat sync.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="glass glass--deck-demo reveal">
+            <div class="deck-demo-stack">
+              <p class="yt-label"><span data-lang="ko">실물 하이파이브 데모</span><span data-lang="en">Real high-five demo</span></p>
+              <div class="media-wrap media-wrap--deck16">
+                <video
+                  class="deck-media deck-media--hero"
+                  src="https://minsung.cdn.prismic.io/minsung/aiDiPgeQX7-eWtW4_%ED%95%98%EC%9D%B4%ED%8C%8C%EC%9D%B4%EB%B8%8C-%EC%B5%9C%EC%A2%85-.mp4"
+                  poster="https://images.prismic.io/joey/ah544AeQX7-eWhsi_hifive_final.gif"
+                  preload="metadata"
+                  muted
+                  loop
+                  playsinline
+                  aria-label="EduPing real high-five demo"
+                ></video>
+              </div>
+              <div class="flow">
+                <span>D435 depth</span><span class="arrow">→</span>
+                <span>Hand landmark</span><span class="arrow">→</span>
+                <span>TRAC-IK</span><span class="arrow">→</span>
+                <span>FK residual</span><span class="arrow">→</span>
+                <span>Joint cmd</span>
+              </div>
+              <div class="metrics">
+                <div class="metric"><div class="val">28→2cm</div><div class="lbl"><span data-lang="ko">하이파이브</span><span data-lang="en">high-five</span></div></div>
+                <div class="metric"><div class="val">~68</div><div class="lbl"><span data-lang="ko">커밋</span><span data-lang="en">commits</span></div></div>
+                <div class="metric"><div class="val">Vue3</div><div class="lbl">Three.js</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 17: EduPing — What (HRI surfaces) -->
+    <section class="slide slide-dense slide--sparse" data-slide="16">
+      <div class="slide-fit">
+      <div class="slide-body grid-2">
+        <div class="glass reveal">
+          <p class="eyebrow"><span data-lang="ko">EduPing · 구현</span><span data-lang="en">EduPing · Build</span></p>
+          <h2><span data-lang="ko">Vue 탭 3개로 등하원·무궁화·하이파이브를 나눴습니다</span><span data-lang="en">Three Vue tabs split attendance, Mugunghwa &amp; high-five</span></h2>
+          <div class="flow">
+            <span>Vue UI</span><span class="arrow">→</span>
+            <span>WS / ROS</span><span class="arrow">→</span>
+            <span>OpenArm</span>
+          </div>
+          <ul class="bullets">
+            <li data-lang="ko"><strong>하이파이브</strong> — MediaPipe 손 + D435 역투영 → TRAC-IK → FK 잔차</li>
+            <li data-lang="en"><strong>High-five</strong> — MediaPipe hand + D435 deprojection → TRAC-IK → FK residual</li>
+            <li data-lang="ko"><strong>등하원</strong> — 얼굴 인식 후 인사 모션 트리거 (<strong>AttendanceCamera</strong>)</li>
+            <li data-lang="en"><strong>Attendance</strong> — face detect → greeting motion trigger (<strong>AttendanceCamera</strong>)</li>
+            <li data-lang="ko"><strong>무궁화</strong> — 리듬 게임 셸, <strong>RecorderControls</strong> 율동 녹화, <code>/dance/…/stream</code> 동기 재생</li>
+            <li data-lang="en"><strong>Mugunghwa</strong> — rhythm game shell, <strong>RecorderControls</strong> motion capture, <code>/dance/…/stream</code> synced playback</li>
+            <li data-lang="ko"><strong>OX 퀴즈</strong> 비전 보드 + 포털 <strong>일과·감정 사진</strong> 리포트 페이지</li>
+            <li data-lang="en"><strong>O/X quiz</strong> vision board + portal <strong>daily &amp; emotion photo</strong> report pages</li>
+          </ul>
+          <div class="hardest-block hardest-block--learned" style="margin-top:1rem">
+            <div class="problem-solution" data-lang="ko">
+              <div class="problem-solution__block problem-solution__block--learned">
+                <span class="problem-solution__label">배운 점</span><span class="problem-solution__body">아이 앞 데모는 <strong>한 화면에 기능을 몰아넣기</strong>보다, 등하원·무궁화·하이파이브를 <strong>탭으로 나누고</strong> 각각 <strong>녹화→재생</strong> 루프를 맞추는 게 안전했습니다.</span>
+              </div>
+            </div>
+            <div class="problem-solution" data-lang="en">
+              <div class="problem-solution__block problem-solution__block--learned">
+                <span class="problem-solution__label">Lessons learned</span><span class="problem-solution__body">For kids on stage, <strong>split tabs</strong> (attendance · Mugunghwa · high-five) with separate <strong>record→playback</strong> loops beat one crowded console.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="glass reveal">
+          <p class="yt-label"><span data-lang="ko">무궁화 — 실물 율동 UI</span><span data-lang="en">Mugunghwa — live dance UI</span></p>
+          <img
+            class="deck-media"
+            src="https://images.prismic.io/joey/ah546geQX7-eWhsq_mugunghwa_real.gif"
+            alt="Mugunghwa rhythm game on real OpenArm"
+            loading="lazy"
+          />
+          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">박자·양팔 가리기 모션 녹화·재생</span><span data-lang="en">Beat-synced dual-arm cover motion record &amp; playback</span></p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 18: EduPing — Proof -->
+    <section class="slide slide-dense slide--sparse" data-slide="17">
+      <div class="slide-fit">
+      <div class="slide-body grid-2">
+        <div class="glass reveal">
+          <p class="eyebrow"><span data-lang="ko">EduPing · 검증</span><span data-lang="en">EduPing · Proof</span></p>
+          <h2><span data-lang="ko">실물 하이파이브·무궁화 영상으로 HRI를 증명할 수 있었습니다</span><span data-lang="en">Real high-five &amp; Mugunghwa video proved HRI</span></h2>
+          <div class="metrics">
+            <div class="metric"><div class="val">28→2cm</div><div class="lbl"><span data-lang="ko">하이파이브 오차</span><span data-lang="en">high-five miss</span></div></div>
+            <div class="metric"><div class="val">~68</div><div class="lbl"><span data-lang="ko">커밋</span><span data-lang="en">commits</span></div></div>
+            <div class="metric"><div class="val">3</div><div class="lbl"><span data-lang="ko">HRI 탭</span><span data-lang="en">HRI tabs</span></div></div>
+          </div>
+          <ul class="bullets" style="margin-top:0.75rem">
+            <li data-lang="ko">실물 <strong>하이파이브</strong> 영상 + 무궁화 <strong>율동 재생</strong> 클립 (팀 최종 데모)</li>
+            <li data-lang="en">Real <strong>high-five</strong> capture + Mugunghwa <strong>dance playback</strong> clip (team final demo)</li>
+            <li data-lang="ko">등하원·무궁화·포털 <strong>Q&A 슬라이드</strong>를 직접 작성했습니다 (Confluence 형식)</li>
+            <li data-lang="en">Wrote <strong>Q&amp;A slides</strong> for attendance, Mugunghwa, portal (Confluence style)</li>
+            <li data-lang="ko"><strong>MuJoCo 트윈</strong>으로 리치 검증 후 현장 OpenArm 튜닝</li>
+            <li data-lang="en"><strong>MuJoCo twin</strong> reach checks before field OpenArm tuning</li>
+          </ul>
+          <ul class="bullets" style="margin-top:0.55rem">
+            <li data-lang="ko"><strong>D435 스트리머</strong> conda ABI 깨짐 → 시스템 Python 복구 (슬라이드 16 참고)</li>
+            <li data-lang="en"><strong>D435 streamer</strong> conda ABI break → system Python fix (see slide 16)</li>
+          </ul>
+          <p class="muted" style="margin-top:0.75rem;font-size:0.82rem;font-family:var(--mono)">physical-ai-repo-2 · Vue/Three.js · ROS 2 Jazzy</p>
+        </div>
+        <div class="glass reveal">
+          <p class="yt-label"><span data-lang="ko">무궁화 율동 재생</span><span data-lang="en">Mugunghwa dance playback</span></p>
+          <video
+            class="deck-media"
+            src="https://minsung.cdn.prismic.io/minsung/aiDhDgeQX7-eWtV8_%EC%9C%A8%EB%8F%99-%EC%B5%9C%EC%A2%85-.mp4"
+            poster="https://images.prismic.io/joey/ah546geQX7-eWhsq_mugunghwa_real.gif"
+            preload="metadata"
+            muted
+            loop
+            playsinline
+            aria-label="EduPing Mugunghwa rhythm dance playback"
+          ></video>
+          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">녹화 모션 + 음원 WS 동기 재생</span><span data-lang="en">Recorded motion + synced audio WS playback</span></p>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 18: Play the Lab CTA -->
+    <section class="slide slide--sparse" data-slide="18">
+      <div class="slide-fit slide-fit--cta">
+      <div class="glass cta-zone reveal">
+        <p class="eyebrow"><span data-lang="ko">랩에 들어가기</span><span data-lang="en">Play the Lab</span></p>
+        <h1><span data-lang="ko">걸어서 확인하세요.</span><span data-lang="en">Walk the maze.</span></h1>
+        <p data-lang="ko" style="max-width:36rem;margin:1rem auto 0">제가 직접 만든 네 스테이션 — PDF 이력서가 아닌 걸어 다니는 <strong>3D 랩</strong>입니다.</p>
+        <p data-lang="en" style="max-width:36rem;margin:1rem auto 0">Four stations I actually built — not a PDF resume. This portfolio <strong>is</strong> the 3D lab.</p>
+        <div class="cta-stack">
+          <a class="cta-btn" href="https://joeyleeportfolio.netlify.app/" target="_blank" rel="noopener">
+            ▶ joeyleeportfolio.netlify.app
+          </a>
+          <div class="controls-box">
+            <div data-lang="ko"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동</div>
+            <div data-lang="en"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk</div>
+            <div data-lang="ko" style="margin-top:0.5rem"><kbd>E</kbd> 스테이션·게이트 열기</div>
+            <div data-lang="en" style="margin-top:0.5rem"><kbd>E</kbd> open gates &amp; projects</div>
+            <div data-lang="ko" style="margin-top:0.5rem"><kbd>1</kbd>–<kbd>4</kbd> 스테이션 점프</div>
+            <div data-lang="en" style="margin-top:0.5rem"><kbd>1</kbd>–<kbd>4</kbd> jump to station</div>
+            <div class="esc-hint" data-lang="ko"><kbd>Esc</kbd> 뒤로 · 패널 닫기</div>
+            <div class="esc-hint" data-lang="en"><kbd>Esc</kbd> back · close panel</div>
+          </div>
+        </div>
+        <nav class="cta-contact" aria-label="Contact">
+          <a class="cta-contact__link" href="mailto:jwlee8403@gmail.com">
+            <span aria-hidden="true">✉</span> jwlee8403@gmail.com
+          </a>
+          <a class="cta-contact__link" href="https://github.com/joey114132" target="_blank" rel="noopener noreferrer">
+            <span aria-hidden="true">⌥</span> github.com/joey114132
+          </a>
+          <a class="cta-contact__link cta-contact__link--accent" href="https://www.linkedin.com/in/jeongwoolee970515" target="_blank" rel="noopener noreferrer">
+            <span aria-hidden="true">in</span> LinkedIn
+          </a>
+        </nav>
+        <p class="muted" style="margin-top:1.25rem;font-size:0.85rem">
+          Joey Lee (이정우) · Physical AI · sim first, robot second
+        </p>
+      </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = "portfolio-deck-lang";
+      const langBtn = document.getElementById("lang-btn");
+      const langLabel = document.querySelector(".lang-btn__label");
+      let lang = localStorage.getItem(STORAGE_KEY);
+      if (lang !== "ko" && lang !== "en") lang = "ko";
+
+      function applyLang() {
+        document.documentElement.lang = lang;
+        document.documentElement.classList.remove("lang-ko", "lang-en");
+        document.documentElement.classList.add("lang-" + lang);
+        if (langLabel) langLabel.textContent = lang === "ko" ? "English" : "한국어";
+        try { localStorage.setItem(STORAGE_KEY, lang); } catch (_) { /* private mode */ }
+      }
+
+      langBtn?.addEventListener("click", () => {
+        lang = lang === "ko" ? "en" : "ko";
+        applyLang();
+        scheduleFitActiveSlide();
+      });
+      applyLang();
+
+      const slides = [...document.querySelectorAll(".slide")];
+      const total = slides.length;
+      const progress = document.getElementById("progress");
+      const counter = document.getElementById("counter");
+      if (counter) counter.textContent = "1 / " + total;
+      let idx = 0;
+      let touchX = null;
+
+      // GIF 애니메이션을 슬라이드 진입 시에만 시작 — 1×1 투명 픽셀
+      const GIF_PLACEHOLDER =
+        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+      // 슬라이드 이탈 후 늦게 도착한 canplay 재생 방지
+      let slideMediaGen = 0;
+
+      // 슬라이드 GIF — src를 data로 옮기고 placeholder로 정지
+      function prepareGifImg(img) {
+        const src = img.getAttribute("src");
+        if (!src || img.dataset.slideMediaGif) return;
+        if (!/\.gif/i.test(src)) return;
+        img.dataset.slideMediaGif = src;
+        img.src = GIF_PLACEHOLDER;
+      }
+
+      // 슬라이드 이탈 시 영상·GIF 모두 정지·리셋
+      function pauseSlideMedia(slide) {
+        if (!slide) return;
+        slideMediaGen += 1;
+        slide.querySelectorAll("video").forEach((video) => {
+          video.pause();
+          try {
+            video.currentTime = 0;
+          } catch (_) { /* 메타데이터 전 seek 방지 */ }
+        });
+        slide.querySelectorAll("img[data-slide-media-gif]").forEach((img) => {
+          img.src = GIF_PLACEHOLDER;
+        });
+      }
+
+      // 단일 video — 원격 MP4는 canplay 이후 재생
+      function startDeckVideo(video, gen) {
+        const tryPlay = () => {
+          if (gen !== slideMediaGen) return;
+          const playPromise = video.play();
+          if (playPromise && typeof playPromise.catch === "function") {
+            playPromise.catch(() => { /* 슬라이드 진입 자동재생 거부 시 무시 */ });
+          }
+        };
+        if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+          tryPlay();
+          return;
+        }
+        const onReady = () => {
+          video.removeEventListener("loadeddata", onReady);
+          video.removeEventListener("canplay", onReady);
+          tryPlay();
+        };
+        video.addEventListener("loadeddata", onReady);
+        video.addEventListener("canplay", onReady);
+        tryPlay();
+      }
+
+      // 활성 슬라이드의 데모 영상·GIF만 재생
+      function playSlideMedia(slide) {
+        if (!slide) return;
+        const gen = ++slideMediaGen;
+        slide.querySelectorAll("video").forEach((video) => startDeckVideo(video, gen));
+        slide.querySelectorAll("img[data-slide-media-gif]").forEach((img) => {
+          const real = img.dataset.slideMediaGif;
+          if (real && img.src !== real) img.src = real;
+        });
+      }
+
+      // 초기 로드 시 autoplay 제거·GIF 게이트 — 페이지 열자마자 백그라운드 재생 방지
+      function initSlideMediaGate() {
+        slides.forEach((slide) => {
+          slide.querySelectorAll("video").forEach((video) => {
+            video.removeAttribute("autoplay");
+            video.pause();
+            try {
+              video.currentTime = 0;
+            } catch (_) { /* seek 전 */ }
+          });
+          slide.querySelectorAll("img[src*='.gif']").forEach(prepareGifImg);
+        });
+      }
+
+      // 반성 카드(.problem-solution__block) 본문 전문용어만 은은하게 하이라이트
+      const DECK_TERM_LIST = [
+        "ModeController", "AttendanceCamera", "RecorderControls", "MobileNetV3", "MobileNet",
+        "PaddleOCR", "MediaPipe", "OpenCV", "FastAPI", "Three.js", "PyQt6", "ESP32-CAM",
+        "ESP32", "pynput", "MuJoCo", "OpenArm", "NCNN", "OSNet", "ByteTrack", "Safe-ID",
+        "YOLOv8", "YOLO", "TRAC-IK", "LSTM", "MQTT", "ROS 2", "ROS2", "QoS", "LPR",
+        "ReID", "UDP", "TCP", "WebSocket", "WebSockets", "FK", "IK", "D435", "Vue 3",
+        "Vue3", "HSV", "ROI", "ABI", "zstd", "GPIO", "IR", "LCD", "QR", "Confluence",
+        "Pinky Pro", "Jazzy", "Pi 5", "Raspberry Pi", "conda", "enumeration", "npy",
+        "PING/PONG", "33-byte", "33 byte", "WS", "HRI", "deprojection", "inference"
+      ].sort((a, b) => b.length - a.length);
+
+      function escapeRegExp(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }
+
+      function wrapDeckTermsInText(text, re) {
+        const parts = text.split(re);
+        if (parts.length <= 1) return null;
+        const frag = document.createDocumentFragment();
+        parts.forEach((part, i) => {
+          if (!part) return;
+          if (i % 2 === 1) {
+            const span = document.createElement("span");
+            span.className = "deck-term";
+            span.textContent = part;
+            frag.appendChild(span);
+          } else {
+            frag.appendChild(document.createTextNode(part));
+          }
+        });
+        return frag;
+      }
+
+      function highlightDeckTermsInBlock(block) {
+        if (block.dataset.deckTermsDone) return;
+        const label = block.querySelector(".problem-solution__label");
+        const re = new RegExp("(" + DECK_TERM_LIST.map(escapeRegExp).join("|") + ")", "g");
+        const walker = document.createTreeWalker(
+          block,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode(node) {
+              if (label && label.contains(node)) return NodeFilter.FILTER_REJECT;
+              if (node.parentElement && node.parentElement.closest(".deck-term")) {
+                return NodeFilter.FILTER_REJECT;
+              }
+              if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
+              return NodeFilter.FILTER_ACCEPT;
+            }
+          }
+        );
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach((node) => {
+          const wrapped = wrapDeckTermsInText(node.textContent, re);
+          if (!wrapped) return;
+          node.parentNode.replaceChild(wrapped, node);
+        });
+        block.dataset.deckTermsDone = "1";
+      }
+
+      // 반성 블록 본문을 한 래퍼로 묶음 — grid 자식이 형광펜 span마다 쪼개지는 것 방지
+      function wrapProblemSolutionBodies() {
+        document.querySelectorAll(".problem-solution__block").forEach((block) => {
+          const label = block.querySelector(".problem-solution__label");
+          if (!label || block.querySelector(".problem-solution__body")) return;
+          const body = document.createElement("span");
+          body.className = "problem-solution__body";
+          while (label.nextSibling) {
+            body.appendChild(label.nextSibling);
+          }
+          block.appendChild(body);
+        });
+      }
+
+      function highlightAllDeckTerms() {
+        document.querySelectorAll(".problem-solution__block").forEach(highlightDeckTermsInBlock);
+      }
+
+      // 슬라이드별 이미지·영상·GIF URL (미디어 게이트 적용 후 data-slide-media-gif 포함)
+      function collectSlideAssetUrls(slide) {
+        const urls = new Set();
+        const add = (raw) => {
+          if (!raw || raw.startsWith("data:")) return;
+          try {
+            urls.add(new URL(raw, document.baseURI).href);
+          } catch (_) {
+            urls.add(raw);
+          }
+        };
+        slide.querySelectorAll("img").forEach((img) => {
+          add(img.dataset.slideMediaGif);
+          add(img.getAttribute("src"));
+        });
+        slide.querySelectorAll("video").forEach((video) => {
+          add(video.getAttribute("src"));
+          add(video.getAttribute("poster"));
+        });
+        return [...urls];
+      }
+
+      // 단일 에셋 프리로드 — 영상은 canplaythrough, 이미지는 onload
+      function preloadOneAsset(url) {
+        const lower = url.toLowerCase();
+        const isVideo = /\.(mp4|webm|ogg)(\?|$)/.test(lower);
+        if (isVideo) {
+          return new Promise((resolve) => {
+            const video = document.createElement("video");
+            video.preload = "auto";
+            video.muted = true;
+            const finish = () => {
+              video.removeAttribute("src");
+              video.load();
+              resolve();
+            };
+            video.addEventListener("canplaythrough", finish, { once: true });
+            video.addEventListener("error", finish, { once: true });
+            setTimeout(finish, 30000);
+            video.src = url;
+          });
+        }
+        return new Promise((resolve) => {
+          const img = new Image();
+          const finish = () => resolve();
+          img.onload = finish;
+          img.onerror = finish;
+          setTimeout(finish, 20000);
+          img.src = url;
+        });
+      }
+
+      // 슬라이드 단위 프리로드·prefit — 로더 분모는 slides.length (에셋 URL 개수와 무관)
+      async function preloadDeckThenStart() {
+        const bar = document.getElementById("deck-loader-bar");
+        const countEl = document.getElementById("deck-loader-count");
+        const loader = document.getElementById("deck-loader");
+        const slideTotal = slides.length;
+        const preloadedUrls = new Set();
+
+        const setSlideProgress = (doneSlides) => {
+          const pct = slideTotal ? (doneSlides / slideTotal) * 100 : 100;
+          if (bar) bar.style.width = pct + "%";
+          if (countEl) countEl.textContent = doneSlides + " / " + slideTotal;
+        };
+
+        initSlideMediaGate();
+        setSlideProgress(0);
+
+        const fontsReady = document.fonts && document.fonts.ready
+          ? document.fonts.ready.catch(() => {})
+          : Promise.resolve();
+
+        const prepareSlides = (async () => {
+          for (let i = 0; i < slideTotal; i++) {
+            // active 토글 금지 — 마지막 슬라이드(CTA)가 active로 남아 모든 화면에 겹침
+            const urls = collectSlideAssetUrls(slides[i]).filter((u) => !preloadedUrls.has(u));
+            await Promise.all(
+              urls.map((url) =>
+                preloadOneAsset(url).then(() => {
+                  preloadedUrls.add(url);
+                })
+              )
+            );
+            measureAndFitSlide(slides[i]);
+            setSlideProgress(i + 1);
+          }
+        })();
+
+        const timeout = new Promise((resolve) => setTimeout(resolve, 50000));
+
+        await Promise.race([Promise.all([prepareSlides, fontsReady]), timeout]);
+
+        slides.forEach((s) => {
+          s.classList.remove("active");
+          s.classList.remove("slide--prefit");
+        });
+
+        if (loader) loader.setAttribute("aria-busy", "false");
+        document.body.classList.add("deck-ready");
+        wrapProblemSolutionBodies();
+        highlightAllDeckTerms();
+        go(0);
+      }
+
+      let fitRaf = 0;
+
+      // 이탈 슬라이드 zoom 초기화 — 다음 측정·전환 시 잔여 스케일 방지
+      function resetSlideFit(slide) {
+        const fit = slide?.querySelector(".slide-fit");
+        if (!fit) return;
+        fit.style.zoom = "";
+      }
+
+      // 뷰포트에 맞게 슬라이드 전체를 축소 — 실제 flex 레이아웃 기준(과대 측정 방지)
+      function measureAndFitSlide(slide) {
+        const fit = slide?.querySelector(".slide-fit");
+        if (!fit) return;
+
+        fit.style.zoom = "";
+        slide.classList.add("slide--prefit");
+        // slide-fit--measure는 flex 제약을 풀어 scrollHeight를 부풀림 → 잘못된 축소·하단 여백 유발
+        const needed = fit.scrollHeight;
+        slide.classList.remove("slide--prefit");
+
+        const cs = getComputedStyle(slide);
+        const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+        const avail = slide.clientHeight - padY;
+        let scale = Math.min(1, avail / needed);
+        // 타이틀·CTA 등 단일 카드 sparse — 여백이 크면 제한적 확대로 채움 (grid-2는 CSS stretch)
+        const hasGrid2 = slide.querySelector(".slide-body.grid-2");
+        const isLooseSparse =
+          (slide.classList.contains("slide--title") ||
+            slide.classList.contains("slide--sparse")) &&
+          !hasGrid2;
+        if (isLooseSparse && needed > 0 && needed < avail * 0.68) {
+          scale = Math.min(1.15, avail / needed);
+        }
+        fit.style.zoom = Math.abs(scale - 1) > 0.005 ? String(scale) : "";
+      }
+
+      function fitActiveSlide() {
+        measureAndFitSlide(slides[idx]);
+      }
+
+      function scheduleFitActiveSlide() {
+        cancelAnimationFrame(fitRaf);
+        fitRaf = requestAnimationFrame(fitActiveSlide);
+      }
+
+      function go(n) {
+        if (n < 0 || n >= total) return;
+        const leaving = slides[idx];
+        pauseSlideMedia(leaving);
+        resetSlideFit(leaving);
+        slides.forEach((s) => s.classList.remove("active"));
+        idx = n;
+        const entering = slides[idx];
+        // active 전에 zoom 확정 — CSS 전환과 rAF 지연 zoom이 겹치며 흔들리는 현상 방지
+        measureAndFitSlide(entering);
+        entering.classList.add("active");
+        progress.style.width = ((idx + 1) / total * 100) + "%";
+        counter.textContent = (idx + 1) + " / " + total;
+        playSlideMedia(entering);
+      }
+
+      function next() { go(Math.min(idx + 1, total - 1)); }
+      function prev() { go(Math.max(idx - 1, 0)); }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+          e.preventDefault();
+          next();
+        } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+          e.preventDefault();
+          prev();
+        } else if (e.key === "Home") {
+          go(0);
+        } else if (e.key === "End") {
+          go(total - 1);
+        }
+      });
+
+      // 모바일 스와이프
+      document.addEventListener("touchstart", (e) => {
+        touchX = e.changedTouches[0].screenX;
+      }, { passive: true });
+      document.addEventListener("touchend", (e) => {
+        if (touchX == null) return;
+        const dx = e.changedTouches[0].screenX - touchX;
+        if (Math.abs(dx) > 50) (dx < 0 ? next : prev)();
+        touchX = null;
+      }, { passive: true });
+
+      window.addEventListener("resize", scheduleFitActiveSlide);
+
+      preloadDeckThenStart();
+    })();
+  </script>
+</body>
+</html>
