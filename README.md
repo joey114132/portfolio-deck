@@ -25,5 +25,7 @@ python3 -m http.server 8877
 From repo root with a local server on port 8877:
 
 ```zsh
-node verify-deck-split.mjs
+npm install   # once — puppeteer for verify scripts
+npm run verify:deck    # desktop 1280×720 layout smoke
+npm run verify:mobile  # iPhone SE 375×667 — no horizontal overflow, zoom=1, readable body text
 ```

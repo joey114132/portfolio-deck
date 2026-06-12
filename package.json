@@ -1,0 +1,24 @@
+{
+  "name": "portfolio-deck",
+  "version": "1.0.0",
+  "description": "Standalone HTML slide deck for the NBCamp-style robotics portfolio (Gesto, IoT, ShopPinkki, EduPing).",
+  "main": "index.js",
+  "scripts": {
+    "verify:deck": "node verify-deck-split.mjs",
+    "verify:mobile": "node verify-deck-mobile.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joey114132/portfolio-deck.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joey114132/portfolio-deck/issues"
+  },
+  "homepage": "https://github.com/joey114132/portfolio-deck#readme",
+  "devDependencies": {
+    "puppeteer": "^25.1.0"
+  }
+}

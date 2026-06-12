@@ -63,6 +63,7 @@
       width: 100vw;
       height: 100vh;
       z-index: 2;
+      isolation: isolate;
     }
 
     .slide {
@@ -194,6 +195,12 @@
       opacity: 1;
       visibility: visible;
       transform: translateX(0) scale(1);
+      z-index: 3;
+    }
+    /* 비활성 슬라이드 겹침·터치 유입 방지 */
+    .slide:not(.active) {
+      z-index: 0;
+      pointer-events: none;
     }
     /* 전환 전 fit 측정 — 보이지 않게 하되 활성 슬라이드와 동일 레이아웃 */
     .slide.slide--prefit {
@@ -1251,6 +1258,142 @@
       flex-shrink: 0;
       margin-top: 0.35rem;
       font-size: 0.8rem;
+    }
+
+    /* iPhone SE 등 좁은 모바일 — 패딩·미디어·타이포 축소, 과도한 zoom 대신 스크롤 */
+    @media (max-width: 480px) {
+      .slide {
+        padding: 2.35rem 0.75rem 3.35rem;
+      }
+      .lang-toggle {
+        top: 0.55rem;
+        right: 0.65rem;
+      }
+      .lang-btn {
+        min-height: 2.1rem;
+        padding: 0.38rem 0.7rem 0.38rem 0.6rem;
+        font-size: 0.72rem;
+      }
+      .nav-hint {
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: 0.55rem;
+        font-size: 0.62rem;
+        text-align: center;
+      }
+      .counter {
+        bottom: auto;
+        top: 0.65rem;
+        left: 0.75rem;
+        right: auto;
+        font-size: 0.72rem;
+      }
+      .slide-title-meta {
+        white-space: normal;
+      }
+      .slide-header {
+        margin-bottom: 0.45rem;
+      }
+      .slide-body {
+        gap: 0.65rem;
+      }
+      /* 헤더 인트로 미디어는 본문 열과 중복 — 모바일에서는 본문 미디어·지표만 유지 */
+      .slide-dense:has(.slide-col--media) .slide-header-intro__media {
+        display: none;
+      }
+      .slide-header-intro {
+        gap: 0.55rem;
+        margin-bottom: 0.35rem;
+      }
+      .slide-header-intro__media .yt-thumb--hero,
+      .slide-header-intro__media .deck-media--hero {
+        max-height: min(22vh, 148px);
+      }
+      .slide[data-slide="6"] .slide-header-intro__media .deck-media--hero {
+        max-height: min(20vh, 132px);
+      }
+      .slide img,
+      .deck-media {
+        max-height: 30vh;
+      }
+      .yt-thumb--hero,
+      .deck-media--hero {
+        max-height: min(28vh, 168px);
+      }
+      .why-block,
+      .my-work-block,
+      .project-brief {
+        margin-top: 0.55rem;
+        padding: 0.6rem 0.8rem;
+      }
+      .card-compact.why-block,
+      .card-compact.my-work-block,
+      .card-compact.project-brief {
+        padding: 0.5rem 0.7rem;
+      }
+      .my-work-block ul.bullets li,
+      .my-work-block ul.my-work-block__list li {
+        padding: 0.15rem 0 0.15rem 1.25rem;
+        font-size: 0.8rem;
+        line-height: 1.5;
+      }
+      .metrics {
+        gap: 0.35rem;
+        margin-top: 0.45rem;
+      }
+      .metric {
+        padding: 0.4rem 0.2rem;
+        flex: 1 1 88px;
+      }
+      .metric .val {
+        font-size: 1.15rem;
+      }
+      .metric .lbl {
+        font-size: 0.68rem;
+      }
+      .flow {
+        font-size: 0.66rem;
+        margin: 0.45rem 0;
+        gap: 0.35rem;
+      }
+      .flow span {
+        padding: 0.2rem 0.45rem;
+      }
+      h2 {
+        font-size: 1.32rem;
+      }
+      h1 {
+        font-size: 1.85rem;
+      }
+      p, li {
+        font-size: 0.84rem;
+        line-height: 1.55;
+      }
+      .slide-dense p,
+      .slide-dense li {
+        font-size: 0.8rem;
+        line-height: 1.52;
+      }
+      .slide-dense h3 {
+        font-size: 0.82rem;
+        margin-top: 0.55rem;
+      }
+      .slide[data-deck-video-slide] .slide-body.grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .slide-col--media-feature .yt-thumb--panel {
+        max-height: min(36vh, 14rem);
+      }
+      /* zoom 대신 세로 스크롤 — 본문 가독성 유지 */
+      .slide.slide--scroll {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .slide.slide--scroll .slide-fit {
+        flex: 0 0 auto;
+        min-height: min-content;
+      }
     }
   </style>
 </head>
@@ -2413,12 +2556,20 @@
         fit.style.zoom = "";
       }
 
+      // 모바일 — zoom 없이 넘치면 세로 스크롤(글자 크기 유지)
+      const MOBILE_MAX_W = 480;
+
+      function isMobileDeckViewport() {
+        return window.matchMedia(`(max-width: ${MOBILE_MAX_W}px)`).matches;
+      }
+
       // 뷰포트에 맞게 슬라이드 전체를 축소 — 실제 flex 레이아웃 기준(과대 측정 방지)
       function measureAndFitSlide(slide) {
         const fit = slide?.querySelector(".slide-fit");
         if (!fit) return;
 
         fit.style.zoom = "";
+        slide.classList.remove("slide--scroll");
         slide.classList.add("slide--prefit");
         // slide-fit--measure는 flex 제약을 풀어 scrollHeight를 부풀림 → 잘못된 축소·하단 여백 유발
         const needed = fit.scrollHeight;
@@ -2427,6 +2578,14 @@
         const cs = getComputedStyle(slide);
         const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
         const avail = slide.clientHeight - padY;
+
+        // 좁은 모바일 — 축소 대신 스크롤만 사용
+        if (isMobileDeckViewport()) {
+          if (needed > avail + 2) slide.classList.add("slide--scroll");
+          fit.style.zoom = "";
+          return;
+        }
+
         let scale = Math.min(1, avail / needed);
         // 타이틀·CTA 등 단일 카드 sparse — 여백이 크면 제한적 확대로 채움 (grid-2는 CSS stretch)
         const hasGrid2 = slide.querySelector(".slide-body.grid-2");
