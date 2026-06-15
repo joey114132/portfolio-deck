@@ -782,11 +782,29 @@
     }
 
     .name-badge {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
       flex-wrap: wrap;
       margin-bottom: 0.5rem;
+    }
+    .name-badge .name-badge__photo {
+      width: clamp(4.25rem, 11vw, 5.25rem);
+      height: clamp(5.35rem, 13.5vw, 6.6rem);
+      max-height: none;
+      object-fit: cover;
+      object-position: center 12%;
+      border-radius: 10px;
+      border: 2px solid rgba(0, 229, 255, 0.35);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.15), 0 8px 24px rgba(0, 0, 0, 0.45);
+      flex-shrink: 0;
+    }
+    .name-badge__text {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 0.75rem;
+      min-width: 0;
     }
     .name-badge .role-tag {
       font-family: var(--mono);
@@ -1478,8 +1496,18 @@
         <div class="glass reveal">
           <p class="eyebrow"><span data-lang="ko">채용 목적</span><span data-lang="en">Purpose</span></p>
           <div class="name-badge">
-            <h1 style="margin:0"><span data-lang="ko">이정우</span><span data-lang="en">Joey Lee</span></h1>
-            <span class="role-tag"><span data-lang="ko">Physical AI · 로봇 · 비전-UI</span><span data-lang="en">Physical AI · Robotics · Vision-UI</span></span>
+            <img
+              class="name-badge__photo"
+              src="assets/profile/joey-lee.jpg"
+              alt="Joey Lee"
+              width="864"
+              height="1152"
+              loading="eager"
+            />
+            <div class="name-badge__text">
+              <h1 style="margin:0"><span data-lang="ko">이정우</span><span data-lang="en">Joey Lee</span></h1>
+              <span class="role-tag"><span data-lang="ko">Physical AI · 로봇 · 비전-UI</span><span data-lang="en">Physical AI · Robotics · Vision-UI</span></span>
+            </div>
           </div>
           <p data-lang="ko" style="margin-top:0.5rem"><strong>데모가 끊기지 않게</strong> 비전·UI·로봇을 한 줄로 이어 붙이는 엔지니어입니다. <strong>시뮬·벤치에서 숫자·영상으로 먼저 증명</strong>하고, 안 되면 숨기지 않습니다.</p>
           <p data-lang="en" style="margin-top:0.5rem">I wire <strong>vision → UI → robot</strong> so demos don’t die on stage — <strong>sim/bench proof first</strong>, honest lab log when it breaks.</p>
