@@ -161,8 +161,21 @@
       flex: 0 1 auto;
       min-height: 0;
       display: flex;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: stretch;
       justify-content: center;
+      width: 100%;
+    }
+    .slide-col--media .media-wrap video.deck-media {
+      flex: none;
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 19 / 9;
+      max-height: min(28vh, 220px);
+      min-height: 8rem;
+      object-fit: cover;
+      background: rgba(0, 0, 0, 0.45);
     }
     .slide-col--media .yt-label {
       margin-bottom: 0.35rem;
@@ -612,6 +625,19 @@
       border-radius: 10px;
       border: 1px solid rgba(0, 229, 255, 0.2);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(0, 229, 255, 0.12);
+    }
+    /* grid-2·데모 슬라이드 영상 — 로드 전에도 포스터·비율로 빈 박스 방지 */
+    .grid-2 > .glass video.deck-media,
+    .slide-deck-media video.deck-media {
+      display: block;
+      flex: none;
+      width: 100%;
+      height: auto;
+      min-height: 10rem;
+      aspect-ratio: 16 / 9;
+      max-height: min(38vh, 100%);
+      object-fit: cover;
+      background: rgba(0, 0, 0, 0.45);
     }
     .metrics {
       display: flex;
@@ -1819,15 +1845,15 @@
           <p class="eyebrow" style="margin-bottom:0.4rem">03 · ROS · ROS 2조 (삥끼랩)</p>
           <div class="slide-title-row">
             <h2>ShopPinkki <span style="font-size:0.55em;color:var(--muted)"><span data-lang="ko">쑈삥끼</span><span data-lang="en">ShopPinkki</span></span></h2>
-            <p class="muted" style="font-size:0.88rem;margin:0 0 0.5rem"><span data-lang="ko">마트 세트에서 YOLO·ReID가 곧바로 카트 주행으로 이어집니다</span><span data-lang="en">Mart set — YOLO·ReID feeds cart motion directly</span></p>
+            <p class="muted" style="font-size:0.88rem;margin:0 0 0.5rem"><span data-lang="ko">미니 마트 세트 — 카메라로 주인을 찾아 쇼핑 카트가 따라갑니다</span><span data-lang="en">Miniature mart — camera finds the owner and the cart follows</span></p>
             <span class="slide-title-meta">Apr 3 – Apr 14, 2026 · <span data-lang="ko">12일</span><span data-lang="en">12 days</span></span>
           </div>
           <div class="slide-header-intro">
             <div class="slide-header-intro__text">
               <div class="project-brief card-compact" style="margin:0">
                 <p class="project-brief__label"><span data-lang="ko">프로젝트 소개</span><span data-lang="en">What it is</span></p>
-                <p data-lang="ko"><strong>ROS 2</strong> <strong>Pinky Pro</strong> 마트 카트 — <strong>YOLOv8</strong>·<strong>ByteTrack</strong>·<strong>ReID</strong>로 주인을 따라가는 미니 마트 추종.</p>
-                <p data-lang="en"><strong>ROS 2</strong> <strong>Pinky Pro</strong> mart cart — <strong>owner follow</strong> with <strong>YOLOv8</strong>, <strong>ByteTrack</strong>, and <strong>ReID</strong> in a miniature store.</p>
+                <p data-lang="ko"><strong>ROS 2</strong> 로봇 소프트웨어 위 <strong>Pinky Pro</strong> 쇼핑 카트 — 카메라로 사람을 찾고(<strong>YOLOv8</strong>)·이어서 추적(<strong>ByteTrack</strong>)·같은 사람인지 재확인(<strong>ReID</strong>)해 주인을 따라갑니다.</p>
+                <p data-lang="en"><strong>Pinky Pro</strong> shopping cart on <strong>ROS 2</strong> — camera <strong>detects people (YOLOv8)</strong>, <strong>tracks them (ByteTrack)</strong>, <strong>re-checks identity (ReID)</strong>, and follows the owner.</p>
               </div>
             </div>
             <div class="slide-header-intro__media">
@@ -1842,18 +1868,18 @@
           <div class="slide-col">
             <div class="card-compact why-block">
               <strong><span data-lang="ko">이 팀을 선택한 이유</span><span data-lang="en">Why I joined</span></strong>
-              <p data-lang="ko" style="margin-top:0.35rem">ROS 2조는 <strong>카메라 인식이 곧바로 카트 주행</strong>으로 이어지는 팀이었습니다. 저는 마트 세트 영상에서 <strong>YOLO·ByteTrack·ReID 파이프라인</strong>과 <strong>Safe-ID</strong> 튜닝을 맡아, 주인을 놓치지 않는 추종을 직접 검증하고 싶었습니다.</p>
-              <p data-lang="en" style="margin-top:0.35rem">ROS Team 2 tied <strong>camera perception directly to cart motion</strong>. I wanted to own <strong>YOLO · ByteTrack · ReID</strong> and <strong>Safe-ID</strong> tuning so owner follow stayed stable on the mart set footage.</p>
+              <p data-lang="ko" style="margin-top:0.35rem">ROS 2조는 <strong>카메라 인식 결과가 곧바로 카트 바퀴 제어</strong>로 이어지는 팀이었습니다. 저는 미니 마트 영상에서 <strong>사람 감지→추적→재식별 파이프라인</strong>과 <strong>Safe-ID(주인 ID 고정)</strong> 튜닝을 맡아, 주인을 놓치지 않는 추종을 직접 검증하고 싶었습니다.</p>
+              <p data-lang="en" style="margin-top:0.35rem">ROS Team 2 wired <strong>camera output straight to wheel control</strong>. I wanted to own the <strong>detect → track → re-identify pipeline</strong> and <strong>Safe-ID (owner lock)</strong> tuning so the cart kept following the right person in the mart set.</p>
             </div>
             <div class="card-compact my-work-block">
               <strong><span data-lang="ko">이런 일을 맡았습니다</span><span data-lang="en">What I owned</span></strong>
               <ul class="bullets my-work-block__list">
-                <li data-lang="ko"><strong>YOLO → ByteTrack → ReID</strong> 추종 파이프라인</li>
-                <li data-lang="en"><strong>YOLO → ByteTrack → ReID</strong> follow pipeline</li>
-                <li data-lang="ko"><strong>5-frame Safe-ID</strong> 락</li>
-                <li data-lang="en"><strong>5-frame Safe-ID</strong> lock</li>
-                <li data-lang="ko"><strong>MobileNetV3 ReID</strong> + <strong>NCNN</strong> 실험</li>
-                <li data-lang="en"><strong>MobileNetV3 ReID</strong> + <strong>NCNN</strong> experiments</li>
+                <li data-lang="ko"><strong>YOLO → ByteTrack → ReID</strong> — 감지·추적·재식별 추종 파이프라인</li>
+                <li data-lang="en"><strong>YOLO → ByteTrack → ReID</strong> — detect · track · re-identify pipeline</li>
+                <li data-lang="ko"><strong>5-frame Safe-ID</strong> — 주인 ID를 5프레임 동안 고정</li>
+                <li data-lang="en"><strong>5-frame Safe-ID</strong> — lock owner ID for 5 frames</li>
+                <li data-lang="ko"><strong>MobileNetV3 ReID</strong> + <strong>NCNN</strong> — 카트 컴퓨터(Raspberry Pi 5)용 경량화 실험</li>
+                <li data-lang="en"><strong>MobileNetV3 ReID</strong> + <strong>NCNN</strong> — lightweight tests for the cart’s Raspberry Pi 5</li>
                 <li><strong>9 commits</strong> (ros-repo-2)</li>
               </ul>
             </div>
@@ -1863,17 +1889,21 @@
             <div class="glass glass--media">
               <p class="yt-label"><span data-lang="ko">통합 마트 주행 클립</span><span data-lang="en">Integrated mart run</span></p>
               <div class="media-wrap">
+                <!-- Prismic: woolimi/aee1FsBOoF08xL-c_final-demo.mp4 (HEVC ~4:36) → local H.264 -->
                 <video
                   class="deck-media deck-media--hero"
-                  src="https://woolimi.cdn.prismic.io/woolimi/aee1FsBOoF08xL-c_final-demo.mp4"
+                  src="assets/shoppinkki/final-demo.web.mp4"
+                  poster="assets/shoppinkki/final-demo-poster.jpg"
+                  data-defer-preload
                   muted
                   loop
                   playsinline
+                  preload="metadata"
                   aria-label="ShopPinkki integrated mart final demo"
                 ></video>
               </div>
               <div class="metrics">
-                <div class="metric"><div class="val">Safe-ID</div><div class="lbl"><span data-lang="ko">5프레임</span><span data-lang="en">5-frame</span></div></div>
+                <div class="metric"><div class="val">Safe-ID</div><div class="lbl"><span data-lang="ko">주인 ID 고정</span><span data-lang="en">owner ID lock</span></div></div>
                 <div class="metric"><div class="val">YOLOv8</div><div class="lbl">ByteTrack</div></div>
                 <div class="metric"><div class="val">9</div><div class="lbl"><span data-lang="ko">커밋</span><span data-lang="en">commits</span></div></div>
               </div>
@@ -1889,22 +1919,22 @@
         <div class="slide-body grid-2">
           <div class="glass reveal">
             <p class="eyebrow">03 · ShopPinkki</p>
-            <h2><span data-lang="ko">인형 오검출·ID 스왑 — Safe-ID로 주인 추종을 지킬 수 있었습니다</span><span data-lang="en">Doll false positives &amp; ID swap — Safe-ID kept owner follow</span></h2>
+            <h2><span data-lang="ko">인형·선반 오검출과 ID 바뀜 — Safe-ID로 주인 추종을 지켰습니다</span><span data-lang="en">Doll/shelf false hits &amp; ID swaps — Safe-ID kept owner follow</span></h2>
             <div class="hardest-block" style="margin-top:0.75rem">
               <div class="problem-solution" data-lang="ko">
                 <div class="problem-solution__block problem-solution__block--problem">
-                  <span class="problem-solution__label">힘든 점</span><span class="problem-solution__body">마트 영상에서 <strong>인형·선반 오검출</strong>과 사람 교차 시 <strong>ID 스왑</strong>이 겹쳤습니다.</span>
+                  <span class="problem-solution__label">힘든 점</span><span class="problem-solution__body">미니 마트 영상에서 <strong>인형·선반을 사람으로 착각</strong>하거나, 지나가는 사람과 <strong>추적 ID가 바뀌는</strong> 문제가 겹쳤습니다.</span>
                 </div>
                 <div class="problem-solution__block problem-solution__block--solution">
-                  <span class="problem-solution__label">해결한 방법</span><span class="problem-solution__body"><strong>YOLO</strong> 클래스·ROI 분리로 주인 추적을 유지하고, <strong>5-frame Safe-ID</strong>로 ReID 부담·지연을 절충했습니다.</span>
+                  <span class="problem-solution__label">해결한 방법</span><span class="problem-solution__body"><strong>YOLO</strong>로 감지 대상·관심 영역을 나누고, <strong>5-frame Safe-ID</strong>로 주인 ID를 잠깐 고정해 재식별(ReID) 부담과 지연을 줄였습니다.</span>
                 </div>
               </div>
               <div class="problem-solution" data-lang="en">
                 <div class="problem-solution__block problem-solution__block--problem">
-                  <span class="problem-solution__label">Problem</span><span class="problem-solution__body"><strong>Doll/shelf false positives</strong> in mart footage plus <strong>ID swap</strong> when people crossed paths.</span>
+                  <span class="problem-solution__label">Problem</span><span class="problem-solution__body">In the mart set, <strong>dolls/shelves looked like people</strong> and <strong>tracking IDs swapped</strong> when someone walked past.</span>
                 </div>
                 <div class="problem-solution__block problem-solution__block--solution">
-                  <span class="problem-solution__label">Solution</span><span class="problem-solution__body"><strong>YOLO</strong> class &amp; ROI split kept owner track; <strong>5-frame Safe-ID</strong> balanced ReID load and latency.</span>
+                  <span class="problem-solution__label">Solution</span><span class="problem-solution__body"><strong>YOLO</strong> split what to detect and where to look; <strong>5-frame Safe-ID</strong> briefly locked the owner ID to cut re-identification (ReID) load and lag.</span>
                 </div>
               </div>
             </div>
@@ -1938,7 +1968,7 @@
       <div class="slide-body grid-2">
         <div class="glass reveal">
           <p class="eyebrow"><span data-lang="ko">ShopPinkki · 구현</span><span data-lang="en">ShopPinkki · Build</span></p>
-          <h2><span data-lang="ko">5-frame Safe-ID로 ReID 지연을 줄이고 Pi에 맞췄습니다</span><span data-lang="en">5-frame Safe-ID cut ReID lag for the Pi</span></h2>
+          <h2><span data-lang="ko">Safe-ID로 재식별 부담을 줄이고, 카트 컴퓨터(Raspberry Pi 5)에서도 따라갈 만큼 가볍게 맞췄습니다</span><span data-lang="en">Safe-ID cut re-ID load so follow stayed responsive on the cart’s Raspberry Pi 5</span></h2>
           <div class="flow">
             <span>RGB cam</span><span class="arrow">→</span>
             <span>YOLOv8</span><span class="arrow">→</span>
@@ -1947,24 +1977,24 @@
             <span>Safe-ID</span>
           </div>
           <ul class="bullets">
-            <li data-lang="ko"><strong>Safe-ID 락</strong> — 락 후 5프레임 ReID 생략</li>
-            <li data-lang="en"><strong>Safe-ID lock</strong> — skip ReID for 5 frames after lock</li>
-            <li data-lang="ko"><strong>ReID 백본</strong> — OSNet → MobileNetV3 + HSV 폴백</li>
-            <li data-lang="en"><strong>ReID backbone</strong> — OSNet → MobileNetV3 + HSV fallback</li>
-            <li data-lang="ko"><strong>NCNN</strong>보내기 — Pi 5 엣지 추론 테스트</li>
-            <li data-lang="en"><strong>NCNN</strong> export tests for Pi 5 edge inference</li>
-            <li data-lang="ko">최종 데모용 온로봇 LCD/QR 레이아웃</li>
-            <li data-lang="en">On-robot LCD/QR layout for final demo</li>
+            <li data-lang="ko"><strong>Safe-ID 락</strong> — 주인 ID 확정 후 5프레임 동안 재식별(ReID) 생략</li>
+            <li data-lang="en"><strong>Safe-ID lock</strong> — skip re-ID for 5 frames once owner is locked</li>
+            <li data-lang="ko"><strong>ReID 모델</strong> — OSNet → 더 가벼운 MobileNetV3 + 색상(HSV) 보조</li>
+            <li data-lang="en"><strong>ReID model</strong> — OSNet → lighter MobileNetV3 + color (HSV) fallback</li>
+            <li data-lang="ko"><strong>NCNN 변환</strong> — 카트에 달린 Raspberry Pi 5에서 돌릴 수 있게 경량화 테스트</li>
+            <li data-lang="en"><strong>NCNN export</strong> — lightweight tests to run on the cart’s Raspberry Pi 5</li>
+            <li data-lang="ko">최종 데모용 카트 LCD·QR 화면 레이아웃</li>
+            <li data-lang="en">On-cart LCD/QR screen layout for the final demo</li>
           </ul>
           <div class="hardest-block hardest-block--learned" style="margin-top:1rem">
             <div class="problem-solution" data-lang="ko">
               <div class="problem-solution__block problem-solution__block--learned">
-                <span class="problem-solution__label">배운 점</span><span class="problem-solution__body">프레임마다 ReID를 돌리면 Pi에서 <strong>추적이 한 박자 늦게</strong> 느껴졌습니다. <strong>5-frame Safe-ID</strong>로 락 구간 ReID를 건너뛰고, <strong>MobileNetV3 + NCNN</strong>으로 엣지 부담을 줄였습니다.</span>
+                <span class="problem-solution__label">배운 점</span><span class="problem-solution__body">매 프레임 사람 재식별(ReID)을 돌리면 카트 컴퓨터(Raspberry Pi 5)에서 <strong>따라가기가 한 박자 늦게</strong> 느껴졌습니다. <strong>5-frame Safe-ID</strong>로 확신 구간은 재식별을 건너뛰고, <strong>MobileNetV3 + NCNN</strong>으로 카트 컴퓨터 부담을 줄였습니다.</span>
               </div>
             </div>
             <div class="problem-solution" data-lang="en">
               <div class="problem-solution__block problem-solution__block--learned">
-                <span class="problem-solution__label">Lessons learned</span><span class="problem-solution__body">Running ReID every frame made follow feel <strong>one beat late</strong> on the Pi. <strong>5-frame Safe-ID</strong> skips ReID while locked; <strong>MobileNetV3 + NCNN</strong> cut edge load.</span>
+                <span class="problem-solution__label">Lessons learned</span><span class="problem-solution__body">Re-running re-ID every frame made follow feel <strong>one beat late</strong> on the cart’s Raspberry Pi 5. <strong>5-frame Safe-ID</strong> skips re-ID while locked; <strong>MobileNetV3 + NCNN</strong> cut load on that onboard computer.</span>
               </div>
             </div>
           </div>
@@ -1973,13 +2003,15 @@
           <!-- shoppinkki #/32(33-tracking) 추종 데모 — Prismic MP4 (해당 슬라이드는 GIF 없음) -->
           <video
             class="deck-media"
-            src="https://woolimi.cdn.prismic.io/woolimi/ad-Dd51ZCF7ETNkJ_tracking_muted.mp4"
+            src="assets/shoppinkki/tracking.web.mp4"
+            poster="assets/shoppinkki/tracking-poster.jpg"
             muted
             loop
             playsinline
+            preload="auto"
             aria-label="ShopPinkki owner tracking demo"
           ></video>
-          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">YOLO · ByteTrack · ReID 추종</span><span data-lang="en">YOLO · ByteTrack · ReID owner follow</span></p>
+          <p class="muted" style="margin-top:0.5rem;font-size:0.8rem;text-align:center"><span data-lang="ko">주인 따라가기 — 사람 감지 · 추적 · 재식별</span><span data-lang="en">Owner follow — detect · track · re-identify</span></p>
         </div>
       </div>
       </div>
@@ -1991,22 +2023,26 @@
       <div class="slide-body grid-2">
         <div class="glass reveal slide-deck-copy">
           <p class="eyebrow"><span data-lang="ko">ShopPinkki · 검증</span><span data-lang="en">ShopPinkki · Proof</span></p>
-          <h2><span data-lang="ko">통합 마트 영상으로 추종 모드를 증명할 수 있었습니다</span><span data-lang="en">Integrated mart video proved follow mode</span></h2>
+          <h2><span data-lang="ko">미니 마트 통합 영상으로 ‘주인 따라가기’가 실제로 동작함을 보였습니다</span><span data-lang="en">Integrated mart video showed owner-follow actually working</span></h2>
           <ul class="bullets">
-            <li data-lang="ko">팀 통합 마트 <strong>MP4</strong>에서 추종 모드가 안정적으로 동작함을 보였습니다 — 옆 클립이 증거입니다</li>
-            <li data-lang="en">Follow stable on team <strong>mart MP4</strong> — clip on the right is proof</li>
-            <li data-lang="ko"><strong>shoppinkki.pdf</strong> 인식 섹션 · <strong>9 commits</strong> · NCNN 엣지 실험</li>
-            <li data-lang="en"><strong>shoppinkki.pdf</strong> perception · <strong>9 commits</strong> · NCNN edge tests</li>
-            <li data-lang="ko">5-frame Safe-ID — 사람 교차 시 ID 스왑 감소 (슬라이드 12 참고)</li>
-            <li data-lang="en">5-frame Safe-ID — less ID swap on cross (see slide 11)</li>
+            <li data-lang="ko">팀 통합 마트 영상에서 쇼핑 카트가 주인을 따라가는 모드가 안정적으로 동작함을 보였습니다 — 옆 클립이 증거입니다</li>
+            <li data-lang="en">On the team mart video, the cart’s owner-follow mode ran stably — clip on the right is proof</li>
+            <li data-lang="ko"><strong>shoppinkki.pdf</strong> 인식 섹션 · <strong>9 commits</strong> · Raspberry Pi 5 경량화(NCNN) 실험</li>
+            <li data-lang="en"><strong>shoppinkki.pdf</strong> perception · <strong>9 commits</strong> · Raspberry Pi 5 lightweight (NCNN) tests</li>
+            <li data-lang="ko">5-frame Safe-ID — 사람이 교차해도 추적 ID가 덜 바뀜 (슬라이드 11 참고)</li>
+            <li data-lang="en">5-frame Safe-ID — less ID swap when people cross paths (see slide 11)</li>
           </ul>
           <p class="muted" style="margin-top:0.75rem;font-size:0.82rem;font-family:var(--mono)">ros-repo-2 · 9 commits · shoppinkki.pdf perception section</p>
         </div>
         <div class="glass reveal slide-deck-media">
-          <p class="yt-label"><span data-lang="ko">통합 마트 주행 클립</span><span data-lang="en">Integrated mart run</span></p>
+          <p class="yt-label"><span data-lang="ko">통합 마트 주행 클립 (~4분 36초)</span><span data-lang="en">Integrated mart run (~4m 36s)</span></p>
+          <!-- Prismic: woolimi/aee1FsBOoF08xL-c_final-demo.mp4 (HEVC ~4:36) → local H.264 -->
           <video
             class="deck-media"
-            src="https://woolimi.cdn.prismic.io/woolimi/aee1FsBOoF08xL-c_final-demo.mp4"
+            src="assets/shoppinkki/final-demo.web.mp4"
+            poster="assets/shoppinkki/final-demo-poster.jpg"
+            data-defer-preload
+            controls
             muted
             loop
             playsinline
@@ -2345,6 +2381,9 @@
             playPromise.catch(() => { /* 슬라이드 진입 자동재생 거부 시 무시 */ });
           }
         };
+        if (!video.getAttribute("src") && video.dataset.src) {
+          video.setAttribute("src", video.dataset.src);
+        }
         if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
           tryPlay();
           return;
@@ -2356,6 +2395,7 @@
         };
         video.addEventListener("loadeddata", onReady);
         video.addEventListener("canplay", onReady);
+        video.load();
         tryPlay();
       }
 
@@ -2480,7 +2520,7 @@
           add(img.getAttribute("src"));
         });
         slide.querySelectorAll("video").forEach((video) => {
-          add(video.getAttribute("src"));
+          if (!video.dataset.deferPreload) add(video.getAttribute("src"));
           add(video.getAttribute("poster"));
         });
         return [...urls];
