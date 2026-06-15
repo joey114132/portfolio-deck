@@ -71,8 +71,8 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      padding: 3.25rem 2rem 2.75rem;
+      justify-content: center;
+      padding: 3rem 2rem;
       opacity: 0;
       visibility: hidden;
       transform: translateX(40px) scale(0.98);
@@ -86,9 +86,15 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       min-height: 0;
       flex: 1;
-      transform-origin: top center;
+      transform-origin: center center;
+    }
+    /* 콘텐츠가 뷰포트보다 작거나 zoom 축소 시 — slide가 블록 자체를 세로 중앙에 둠 */
+    .slide-fit.slide-fit--shrink {
+      flex: 0 1 auto;
+      align-self: center;
     }
     /* 측정 시 flex 클리핑을 끄고 실제 콘텐츠 높이를 잡음 */
     .slide-fit--measure .slide-col,
@@ -112,7 +118,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
-      align-items: stretch;
+      align-items: center;
     }
     .slide-col {
       min-height: 0;
@@ -121,9 +127,9 @@
       flex-direction: column;
       gap: 0.55rem;
     }
-    /* 미디어 열 — 라벨·썸네일 사이 flex 성장으로 생기는 빈 공간 방지 */
+    /* 미디어 열 — 텍스트 열 높이에 맞춰 썸네일 블록을 세로 중앙 */
     .slide-col--media {
-      justify-content: flex-start;
+      justify-content: center;
       align-items: stretch;
     }
     .slide-col .glass {
@@ -210,6 +216,14 @@
       transform: translateX(0) scale(1) !important;
       transition: none !important;
       z-index: 0;
+    }
+    /* 측정 시 flex 성장을 끄고 실제 콘텐츠 높이만 잡음 */
+    .slide.slide--prefit .slide-fit {
+      flex: 0 1 auto !important;
+      max-height: none !important;
+    }
+    .slide.slide--prefit .slide-body {
+      flex: 0 1 auto !important;
     }
 
     .glass {
@@ -897,9 +911,9 @@
     .slide-col--media .flow span {
       padding: 0.25rem 0.5rem;
     }
-    /* 타이틀 슬라이드 — slide-fit이 세로를 채운 뒤 내부에서 중앙 (하단만 비는 착시 제거) */
+    /* 타이틀 슬라이드 — 뷰포트·slide-fit 모두 세로 중앙 */
     .slide.slide--title {
-      justify-content: stretch;
+      justify-content: center;
     }
     .slide.slide--title .slide-fit {
       flex: 1;
@@ -914,9 +928,17 @@
       flex-direction: column;
       justify-content: center;
     }
-    /* dense(비-sparse) — 헤더+본문이 뷰포트 세로를 채우고 측정·표시 레이아웃을 맞춤 */
+    /* dense(비-sparse) — 콘텐츠 높이만큼만 잡고 슬라이드가 블록 전체를 세로 중앙 */
     .slide.slide-dense:not(.slide--sparse) {
-      justify-content: stretch;
+      justify-content: center;
+    }
+    .slide.slide-dense:not(.slide--sparse) .slide-fit {
+      flex: 0 1 auto;
+      max-height: 100%;
+    }
+    .slide.slide-dense:not(.slide--sparse) .slide-body {
+      flex: 0 1 auto;
+      align-items: stretch;
     }
     .slide.slide-dense:not(.slide--sparse) .slide-col:first-child .slide-footer-muted {
       margin-top: auto;
@@ -1083,7 +1105,7 @@
     }
     /* CTA sparse — slide-fit이 뷰포트를 채우고 카드만 세로 중앙 */
     .slide.slide--sparse:has(.slide-fit--cta) {
-      justify-content: stretch;
+      justify-content: center;
     }
     /* sparse 기본 — grid-2·CTA 제외한 단일 카드만 슬라이드 자체 중앙 */
     .slide.slide--sparse:not(:has(.slide-body.grid-2)):not(:has(.slide-fit--cta)) {
@@ -1100,7 +1122,7 @@
     }
     /* grid-2 sparse — 박스는 콘텐츠 높이 유지, 슬라이드·열 기준으로만 세로 중앙 */
     .slide.slide-dense.slide--sparse:has(.slide-body.grid-2) {
-      justify-content: stretch;
+      justify-content: center;
     }
     .slide.slide-dense.slide--sparse:has(.slide-body.grid-2) .slide-fit {
       flex: 1;
@@ -2554,6 +2576,7 @@
         const fit = slide?.querySelector(".slide-fit");
         if (!fit) return;
         fit.style.zoom = "";
+        fit.classList.remove("slide-fit--shrink");
       }
 
       // 모바일 — zoom 없이 넘치면 세로 스크롤(글자 크기 유지)
@@ -2569,6 +2592,7 @@
         if (!fit) return;
 
         fit.style.zoom = "";
+        fit.classList.remove("slide-fit--shrink");
         slide.classList.remove("slide--scroll");
         slide.classList.add("slide--prefit");
         // slide-fit--measure는 flex 제약을 풀어 scrollHeight를 부풀림 → 잘못된 축소·하단 여백 유발
@@ -2597,6 +2621,14 @@
           scale = Math.min(1.15, avail / needed);
         }
         fit.style.zoom = Math.abs(scale - 1) > 0.005 ? String(scale) : "";
+        const isDenseIntro =
+          slide.classList.contains("slide-dense") &&
+          !slide.classList.contains("slide--sparse");
+        const shouldShrink =
+          isDenseIntro ||
+          Math.abs(scale - 1) > 0.005 ||
+          (needed > 0 && needed < avail * 0.92);
+        fit.classList.toggle("slide-fit--shrink", shouldShrink);
       }
 
       function fitActiveSlide() {
